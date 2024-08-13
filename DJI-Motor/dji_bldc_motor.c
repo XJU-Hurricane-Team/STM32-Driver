@@ -14,7 +14,7 @@
  */
 static struct {
     dji_motor_handle_t *motor_point; /*!< 电机参数 */
-} dji_motor_list[2][11];
+} dji_motor_can_lists[2][11];
 
 /**
  * @brief 初始化电机
@@ -26,7 +26,7 @@ static struct {
  */
 void dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
                     dji_can_id_t can_id, can_select_t can_selected) {
-    dji_motor_list[can_selected][can_id - 0x201].motor_point = motor;
+    dji_motor_can_lists[can_selected][can_id - 0x201].motor_point = motor;
 
     motor->motor_model = motor_model;
     motor->got_offset = false;
@@ -39,7 +39,8 @@ void dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
  * @param can_selected CAN1还是CAN2
  */
 void dji_motor_deinit(dji_motor_handle_t *motor, can_select_t can_selected) {
-    dji_motor_list[can_selected][motor->motor_id - 0x201].motor_point = NULL;
+    dji_motor_can_lists[can_selected][motor->motor_id - 0x201].motor_point =
+        NULL;
 }
 
 /**
@@ -54,7 +55,7 @@ void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
 
     dji_motor_handle_t *motor_point;
 
-    motor_point = dji_motor_list[can_selected][can_id - 0x201].motor_point;
+    motor_point = dji_motor_can_lists[can_selected][can_id - 0x201].motor_point;
 
     if (motor_point == NULL) {
         return;
@@ -72,6 +73,7 @@ void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
     }
 
     switch (motor_point->motor_model) {
+#if (DJI_MOTOR_USE_M3508_2006 == 1)
         case DJI_M3508: {
             motor_point->real_current = (float)(recv_msg[2] << 8 | recv_msg[3]);
             motor_point->speed_rpm = (int16_t)(motor_point->real_current);
@@ -84,13 +86,16 @@ void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
             motor_point->real_current =
                 (float)(recv_msg[4] << 8 | recv_msg[5]) * 5.0f / 16384.0f;
         } break;
+#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
+#if (DJI_MOTOR_USE_GM6020 == 1)
         case DJI_GM6020: {
             motor_point->speed_rpm = (int16_t)(recv_msg[2] << 8 | recv_msg[3]);
             motor_point->torque_current =
                 (int16_t)(recv_msg[4] << 8 | recv_msg[5]);
             motor_point->temperature = recv_msg[6];
         } break;
+#endif /* DJI_MOTOR_USE_GM6020 == 1 */
 
         default: {
         } break;
@@ -115,6 +120,7 @@ void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
      *      rotor_degree = 当前角度(angle) / 8192 / 360 = angle / 22.75
      */
     switch (motor_point->motor_model) {
+#if (DJI_MOTOR_USE_M3508_2006 == 1)
         case DJI_M3508: {
             /* 3508减速比1:19 */
             motor_point->rotor_degree =
@@ -126,16 +132,20 @@ void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
             motor_point->rotor_degree =
                 (float)(motor_point->total_angle) / (36.0f * 8192.0f) * 360.0f;
         } break;
+#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
+#if (DJI_MOTOR_USE_GM6020 == 1)
         case DJI_GM6020: {
             motor_point->rotor_degree = (float)(motor_point->angle) / 22.75f;
         } break;
+#endif /* DJI_MOTOR_USE_GM6020 == 1 */
 
         default: {
         } break;
     }
 }
 
+#if (DJI_MOTOR_USE_M3508_2006 == 1)
 /**
  * @brief 设置M3508/2006电机电流
  *
@@ -147,7 +157,6 @@ void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
  * @param iq2 电机2电流
  * @param iq3 电机3电流
  * @param iq4 电机4电流
-
  */
 void dji_motor_set_current(can_select_t can_select, uint16_t can_identify,
                            int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4) {
@@ -167,7 +176,9 @@ void dji_motor_set_current(can_select_t can_select, uint16_t can_identify,
     send_msg[7] = iq4 & 0xFF;
     can_send_message(can_select, CAN_ID_STD, can_identify, 8, send_msg);
 }
+#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
+#if (DJI_MOTOR_USE_GM6020 == 1)
 /**
  * @brief GM6020电压控制
  *
@@ -180,9 +191,9 @@ void dji_motor_set_current(can_select_t can_select, uint16_t can_identify,
  * @param voltage3 电机3电压
  * @param voltage4 电机4电压
  */
-void dji_gm6020_set_voltage(can_select_t can_select, uint16_t can_identify,
-                            int16_t voltage1, int16_t voltage2,
-                            int16_t voltage3, int16_t voltage4) {
+void dji_gm6020_voltage_control(can_select_t can_select, uint16_t can_identify,
+                                int16_t voltage1, int16_t voltage2,
+                                int16_t voltage3, int16_t voltage4) {
     if (can_identify != DJI_GM6020_VOLTAGE_GROUP1 &&
         can_identify != DJI_GM6020_VOLTAGE_GROUP2) {
         /* 标识符不合法 */
@@ -213,9 +224,9 @@ void dji_gm6020_set_voltage(can_select_t can_select, uint16_t can_identify,
  * @param current3 电机3电流
  * @param current4 电机4电流
  */
-void dji_gm6020_set_current(can_select_t can_select, uint16_t can_identify,
-                            int16_t current1, int16_t current2,
-                            int16_t current3, int16_t current4) {
+void dji_gm6020_current_control(can_select_t can_select, uint16_t can_identify,
+                                int16_t current1, int16_t current2,
+                                int16_t current3, int16_t current4) {
     if (can_identify != DJI_GM6020_CURRENT_GROUP1 &&
         can_identify != DJI_GM6020_CURRENT_GROUP2) {
         /* 标识符不合法 */
@@ -234,3 +245,4 @@ void dji_gm6020_set_current(can_select_t can_select, uint16_t can_identify,
 
     can_send_message(can_select, CAN_ID_STD, can_identify, 8, send_msg);
 }
+#endif /* DJI_MOTOR_USE_GM6020 == 1 */

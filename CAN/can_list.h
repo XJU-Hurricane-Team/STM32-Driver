@@ -2,7 +2,7 @@
  * @file    can_list.h
  * @author  Deadline039
  * @brief   CAN节点列表, 收到消息遍历列表, 找到对应的ID后回调
- * @version 0.1
+ * @version 1.0
  * @date    2024-04-11
  * @note    两个CAN各一个独立的链表
  */
