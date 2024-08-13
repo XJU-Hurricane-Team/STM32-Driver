@@ -4,7 +4,8 @@
 2. 将`can.c`和`can_list.c`添加到工程的`Bsp`分组中
 3. 修改`can.h`的包含头文件为指定芯片，默认是包含的`stm32f4xx_hal.h`
 4. 修改`can.h`中CAN1和CAN2的IO
-5. 添加相应的HAL库驱动，例如：`stm32f4xx_hal_can.c`
+5. 在`bsp.h`中包含`can.h`
+6. 添加相应的HAL库驱动，例如：`stm32f4xx_hal_can.c`
 
 # API
 
@@ -55,9 +56,9 @@ void motor_callback(void *node_obj,
   - `id_mask`设备反馈ID掩码
   - `node_ptr`设备指针，当收到数据并找到相应ID的设备后会将这个指针作为参数传入`callback`函数
   - `callback`收到数据后调用的函数
-- `can_list_del_node_by_pointer`通过``node_ptr`删除设备
+- `can_list_del_node_by_pointer`通过`node_ptr`删除设备
 - `can_list_del_node_by_id`通过ID删除设备
-- `can_list_change_id`通过``node_ptr`更改ID
+- `can_list_change_id`通过`node_ptr`更改ID
 - `can_list_change_callback`通过`node_ptr`更改回调函数
 - `can_list_find_node_by_id`通过ID查找`node_ptr`
 
