@@ -26,7 +26,7 @@ static can_node_t *can_list_head[2] = {NULL, NULL};
 void can_list_add_new_node(can_select_t can_select, uint32_t id,
                            uint32_t id_mask, void *node_ptr,
                            can_callback callback) {
-    if (node_ptr == NULL) {
+    if (callback == NULL) {
         return;
     }
 

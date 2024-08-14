@@ -1,5 +1,15 @@
 # 大疆 M3508, M2006, GM6020电机驱动
 
+https://www.robomaster.com/zh-CN/products/components/general/GM6020
+https://www.robomaster.com/zh-CN/products/components/general/M3508
+https://www.robomaster.com/zh-CN/products/components/general/M2006
+
+# 依赖
+
+- `can`
+
+# 使用
+
 1. 将头文件复制到`User/Bsp/Inc/`中，源文件复制到`User/Bsp/Src`中
 2. 将`dji_bldc_motor.c`添加到工程的`Bsp`分组中
 3. 在`bsp.h`中包含`dji_bldc_motor.h`
@@ -9,7 +19,7 @@
 接收中断参考以下代码实现：
 
 ```
-extern void dji_motor_can_recv_callback(can_select_t can_selected,
+extern void dji_motor_can_recv_callback(can_select_t can_select,
                                         uint32_t can_id, uint8_t *recv_msg);
 /**
  * @brief CAN RX FIFO0挂起中断回调
@@ -43,6 +53,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 ```
 
 # API
+
+## 结构体对象
 
 `dji_motor_handle_t`包括电机的各种参数，如速度、电流、角度等重要参数。因此使用之前需要定义电机的句柄以接收这些参数。具体包含以下参数，根据需要使用。
 ```
@@ -85,6 +97,8 @@ typedef struct {
 ```
 
 建议将`set_value`作为PID计算结果接收参数。
+
+## 函数方法
 
 - `dji_motor_init` 初始化电机，需要指定句柄、型号、ID(`dji_can_id_t`枚举)、CAN1或者CAN2
 - `dji_motor_deinit`反初始化电机

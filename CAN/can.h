@@ -13,7 +13,6 @@
 
 /**
  * @brief 选择CAN1还是CAN2, 关系到回调和控制
- *
  */
 typedef enum {
     can1_selected = 0x00U, /*!< 选择CAN1 */

@@ -1,5 +1,13 @@
 # CAN驱动
 
+包含CAN底层初始化、收发消息等代码。其中接收使用链表，收到消息后根据ID在表中找到相应的回调函数并调用。
+
+# 依赖
+
+无
+
+# 用法
+
 1. 将头文件复制到`User/Bsp/Inc/`中，源文件复制到`User/Bsp/Src`中
 2. 将`can.c`和`can_list.c`添加到工程的`Bsp`分组中
 3. 修改`can.h`的包含头文件为指定芯片，默认是包含的`stm32f4xx_hal.h`
@@ -50,7 +58,7 @@ void motor_callback(void *node_obj,
 
 
 
-- `can_list_add_new_node`添加新节点
+- `can_list_add_new_node`添加新节点，`node_ptr`可以为空指针，`callback`不能为空！
   - `can_select`使用那个CAN接收，`can1_selected`或`can2_selected`
   - `id`设备反馈时的ID
   - `id_mask`设备反馈ID掩码

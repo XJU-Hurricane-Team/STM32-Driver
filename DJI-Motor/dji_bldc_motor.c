@@ -22,11 +22,11 @@ static struct {
  * @param motor 电机结构体指针
  * @param motor_model 电机型号`DJI_M3508或DJI_M2006`, 关系到减速比与角度
  * @param can_id CAN ID
- * @param can_selected 选择哪一个CAN来通信
+ * @param can_select 选择哪一个CAN来通信
  */
 void dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
-                    dji_can_id_t can_id, can_select_t can_selected) {
-    dji_motor_can_lists[can_selected][can_id - 0x201].motor_point = motor;
+                    dji_can_id_t can_id, can_select_t can_select) {
+    dji_motor_can_lists[can_select][can_id - 0x201].motor_point = motor;
 
     motor->motor_model = motor_model;
     motor->got_offset = false;
@@ -36,26 +36,26 @@ void dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
  * @brief 反初始化电机
  *
  * @param motor 电机结构体指针
- * @param can_selected CAN1还是CAN2
+ * @param can_select CAN1还是CAN2
  */
-void dji_motor_deinit(dji_motor_handle_t *motor, can_select_t can_selected) {
-    dji_motor_can_lists[can_selected][motor->motor_id - 0x201].motor_point =
+void dji_motor_deinit(dji_motor_handle_t *motor, can_select_t can_select) {
+    dji_motor_can_lists[can_select][motor->motor_id - 0x201].motor_point =
         NULL;
 }
 
 /**
  * @brief CAN收到消息中断回调
  *
- * @param can_selected 哪一个CAN的消息
+ * @param can_select 哪一个CAN的消息
  * @param can_id CAN ID
  * @param recv_msg CAN消息
  */
-void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
+void dji_motor_can_recv_callback(can_select_t can_select, uint32_t can_id,
                                  uint8_t *recv_msg) {
 
     dji_motor_handle_t *motor_point;
 
-    motor_point = dji_motor_can_lists[can_selected][can_id - 0x201].motor_point;
+    motor_point = dji_motor_can_lists[can_select][can_id - 0x201].motor_point;
 
     if (motor_point == NULL) {
         return;
@@ -149,7 +149,7 @@ void dji_motor_can_recv_callback(can_select_t can_selected, uint32_t can_id,
 /**
  * @brief 设置M3508/2006电机电流
  *
- * @param can_selected 选择那个CAN发送
+ * @param can_select 选择那个CAN发送
  *  @arg `can1_selected`或者`can2_selected`
  * @param can_identify CAN标识符
  *  @arg `DJI_MOTOR_GROUP1`或`DJI_MOTOR_GROUP2`
@@ -182,7 +182,7 @@ void dji_motor_set_current(can_select_t can_select, uint16_t can_identify,
 /**
  * @brief GM6020电压控制
  *
- * @param can_selected 选择那个CAN发送
+ * @param can_select 选择那个CAN发送
  *  @arg `can1_selected`或者`can2_selected`
  * @param can_identify CAN标识符
  *  @arg `DJI_GM6020_VOLTAGE_GROUP1`或`DJI_GM6020_VOLTAGE_GROUP2`
@@ -215,7 +215,7 @@ void dji_gm6020_voltage_control(can_select_t can_select, uint16_t can_identify,
 /**
  * @brief GM6020电流控制
  *
- * @param can_selected 选择那个CAN发送
+ * @param can_select 选择那个CAN发送
  *  @arg `can1_selected`或者`can2_selected`
  * @param can_identify CAN标识符
  *  @arg `DJI_GM6020_CURRENT_GROUP1`或`DJI_GM6020_CURRENT_GROUP2`
