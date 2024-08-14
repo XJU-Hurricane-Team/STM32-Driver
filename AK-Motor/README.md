@@ -1,7 +1,9 @@
 # CubeMars AK系列电机驱动
 
 https://www.cubemars.com/goods-1151-AK80-8.html
+
 https://www.cubemars.com/images/file/20240611/1718084209493165.pdf
+
 **代码以及文档中的运控模式即MIT，伺服模式即Servo**
 
 # 依赖
