@@ -3,6 +3,7 @@
         "*.s": "arm",
         "*.cpp": "cpp",
         "ak_motor.h": "c",
-        "can_list.h": "c"
+        "can_list.h": "c",
+        "vesc_motor.h": "c"
     }
 }

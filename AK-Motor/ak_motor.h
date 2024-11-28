@@ -1,7 +1,7 @@
 /**
  * @file    ak_motor.h
  * @author  Deadline039
- * @brief   AK电机驱动代码
+ * @brief   AK 电机驱动代码
  * @version 1.0
  * @date    2023-11-27
  */
@@ -16,7 +16,7 @@ extern "C" {
 #include "CSP_Config.h"
 
 /**
- * @brief 型号定义, 不同型号对于不同的参数
+ * @brief 型号定义，不同型号对于不同的参数
  */
 typedef enum {
     AK10_9 = 0U,
@@ -38,21 +38,21 @@ typedef enum {
     AK_ERROR_OVER_VOLTAGE,     /*!< 电机过压 */
     AK_ERROR_UNDER_VOLTAGE,    /*!< 电机欠压 */
     AK_ERROR_ENCODER_FAULT,    /*!< 编码器故障 */
-    AK_ERROR_MOS_TEMPERATURE,  /*!< MOS过温 */
+    AK_ERROR_MOS_TEMPERATURE,  /*!< MOS 过温 */
     AK_ERROR_ROTOR_LOCK        /*!< 电机堵转 */
 } ak_motor_error_t;
 
 /**
- * @brief AK电机句柄
+ * @brief AK 电机句柄
  */
 typedef struct {
-    can_select_t can_select; /*!< 选择CAN1还是CAN2 */
+    can_select_t can_select; /*!< 选择 CAN */
     uint32_t controller_id;  /*!< CAN ID */
 
     ak_motor_model_t motor_model; /*!< 电机型号 */
     float motor_pos;              /*!< 电机位置 */
     float motor_spd;              /*!< 电机速度 */
-    float motor_cur_troq;         /*!< 电机电流, 运控模式为扭矩 */
+    float motor_cur_troq;         /*!< 电机电流，运控模式为扭矩 */
     int8_t motor_temperature;     /*!< 电机温度 */
     ak_motor_error_t error_code;  /*!< 电机错误码 */
 } ak_motor_handle_t;
@@ -61,13 +61,22 @@ typedef struct {
  * @brief 设置原点模式
  */
 typedef enum {
-    SET_ORIGIN_TEMPORARY = 0U, /*!< 设置临时原点(断电消除) */
-    SET_ORIGIN_PERMANENT,      /*!< 设置永久零点(参数自动保存) */
-    SET_ORIGIN_RESET_DEFAULT   /*!< 恢复默认零点(参数自动保存) */
+    AK_ORIGIN_TEMPORARY = 0U, /*!<设置临时原点 (断电消除) */
+    AK_ORIGIN_PERMANENT,      /*!< 设置永久零点 (参数自动保存) */
+    AK_ORIGIN_RESET_DEFAULT   /*!< 恢复默认零点 (参数自动保存) */
 } ak_origin_mode_t;
 
+/**
+ * @brief 电机模式
+ */
+typedef enum {
+    AK_MODE_MIT = 0U, /*!< MIT 模式 */
+    AK_MODE_SERVO,    /*!< 伺服模式 */
+} ak_mode_t;
+
 void ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
-                   ak_motor_model_t model, can_select_t can_select);
+                   ak_motor_model_t model, ak_mode_t mode,
+                   can_select_t can_select);
 void ak_motor_deinit(ak_motor_handle_t *motor);
 
 /* 伺服模式 */
