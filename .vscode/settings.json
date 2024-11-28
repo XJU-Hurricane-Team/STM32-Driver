@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.s": "arm",
+        "*.cpp": "cpp",
+        "ak_motor.h": "c",
+        "can_list.h": "c"
+    }
+}

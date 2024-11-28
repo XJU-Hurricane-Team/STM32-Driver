@@ -1,44 +1,105 @@
 /**
- * @file    can_list.h
+ * @file    can_list.c
  * @author  Deadline039
- * @brief   CAN节点列表, 收到消息遍历列表, 找到对应的ID后回调
+ * @brief   CAN Receive list.
  * @version 1.0
- * @date    2024-04-11
- * @note    两个CAN各一个独立的链表
+ * @date    2024-11-24
+ * @note    We will overload the CAN interrupt callback functions, include CAN
+ *          RX0 and RX1 FIFO pending callbacck.
  */
 
 #ifndef __CAN_LIST_H
 #define __CAN_LIST_H
 
-#include "can.h"
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "CSP_Config.h"
+
+#define CAN_LIST_MAX_CAN_NUMBER 3
+
+#define CAN_LIST_MALLOC         malloc
+#define CAN_LIST_CALLOC         calloc
+#define CAN_LIST_FREE           free
 
 /**
- * @brief CAN回调函数指针
+ * When disabled, the message is processed in the interrupt.
+ *
+ * When enabled, a thread will be created to process the message. After
+ * receiving the CAN message, a semaphore will be sent to the processing thread
+ * to speed up the interrupt exit time.
+ *
+ * Attention: Only support FreeRTOS. You should modify the code if you want use
+ * other RTOS.
  */
-typedef void (*can_callback)(void * /* node_obj */,
-                             CAN_RxHeaderTypeDef * /* can_rx_header */,
-                             uint8_t * /* can_msg */);
+#define CAN_LIST_USE_RTOS       0
+
+#if CAN_LIST_USE_RTOS
+#define CAN_LIST_TASK_NAME     "Can list"
+#define CAN_LIST_TASK_PRIORITY 2
+#define CAN_LSIT_TASK_STK_SIZE 256
+#define CAN_LIST_QUEUE_LENGTH  5
+#endif /* CAN_LIST_USE_RTOS */
+
+#ifndef CAN_ID_STD
+#define CAN_ID_STD (0x00000000U) /*!< Standard Id */
+#endif                           /* CAN_ID_STD */
+
+#ifndef CAN_ID_EXT
+#define CAN_ID_EXT (0x00000004U) /*!< Extended Id */
+#endif                           /* CAN_ID_EXT */
+
+#ifndef CAN_RTR_DATA
+#define CAN_RTR_DATA (0x00000000U) /*!< Data frame   */
+#endif                             /* CAN_RTR_DATA */
+
+#ifndef CAN_RTR_REMOTE
+#define CAN_RTR_REMOTE (0x00000002U) /*!< Remote frame */
+#endif                               /* CAN_RTR_REMOTE */
+
+typedef struct {
+    uint32_t id;         /*!< Message ID.                                     */
+    uint32_t id_type;    /*!< ID type, `CAN_ID_STD` or `CAN_ID_EXT`.          */
+    uint32_t frame_type; /*!< Frame type, `CAN_RTR_DATA` or `CAN_RTR_REMOTE`. */
+    uint8_t data_length; /*!< Message Data length.                            */
+} can_rx_header_t;
 
 /**
- * @brief CAN节点列表, CAN1, CAN2各一个列表
+ * @brief CAN callback function pointer.
+ *
+ * @param node_obj Node data.
+ * @param can_rx_header CAN message rx header.
+ * @param can_msg CAN message data.
+ */
+typedef void (*can_callback_t)(void * /* node_obj */,
+                               can_rx_header_t * /* can_rx_header */,
+                               uint8_t * /* can_msg */);
+
+/**
+ * @brief CAN list node type.
  */
 typedef struct can_node {
-    void *node_ptr;        /*!< CAN对象 */
-    uint32_t id;           /*!< CAN ID */
-    uint32_t id_mask;      /*!< CAN ID掩码, 回调时判断ID */
-    can_callback callback; /*!< 回调函数指针 */
-    struct can_node *next; /*!< 链表下一个节点 */
+    void *can_data;          /*!< The CAN data of this node.    */
+    uint32_t id;             /*!< CAN ID.                       */
+    uint32_t id_mask;        /*!< CAN ID mask.                  */
+    can_callback_t callback; /*!< CAN callback function.        */
+    struct can_node *next;   /*!< Next CAN list node.           */
 } can_node_t;
 
-void can_list_add_new_node(can_select_t can_select, uint32_t id,
-                           uint32_t id_mask, void *node_ptr,
-                           can_callback callback);
-void can_list_del_node_by_pointer(can_select_t can_select, void *node);
-void can_list_del_node_by_id(can_select_t can_select, uint32_t id);
-void can_list_change_id(can_select_t can_select, void *node, uint32_t new_id,
-                        uint32_t new_mask);
-void can_list_change_callback(can_select_t can_select, void *node,
-                              can_callback new_callback);
-can_node_t *can_list_find_node_by_id(can_select_t can_select, uint32_t id);
+uint8_t can_list_add_can(can_selected_t can_select, uint32_t std_len,
+                         uint32_t ext_len);
+
+uint8_t can_list_add_new_node(can_selected_t can_select, void *node_data,
+                              uint32_t id, uint32_t id_mask, uint32_t id_type,
+                              can_callback_t callback);
+uint8_t can_list_del_node_by_id(can_selected_t can_select, uint32_t id_type,
+                                uint32_t id);
+uint8_t can_list_change_callback(can_selected_t can_select, uint32_t id_type,
+                                 uint32_t id, can_callback_t new_callback);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* __CAN_LIST_H */

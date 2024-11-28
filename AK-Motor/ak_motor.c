@@ -134,7 +134,8 @@ void ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
     motor->controller_id = id;
     motor->motor_model = model;
     motor->can_select = can_select;
-    can_list_add_new_node(can_select, id, 0xFF, (void *)motor, ak_can_callback);
+    can_list_add_new_node(can_select, (void *)motor, id, 0xFF, CAN_ID_EXT,
+                          ak_can_callback);
 }
 
 /**

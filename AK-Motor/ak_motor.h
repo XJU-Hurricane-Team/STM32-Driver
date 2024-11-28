@@ -9,7 +9,11 @@
 #ifndef __AK80_H
 #define __AK80_H
 
-#include "can.h"
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "CSP_Config.h"
 
 /**
  * @brief 型号定义, 不同型号对于不同的参数
@@ -83,5 +87,9 @@ void ak_mit_set_origin(ak_motor_handle_t *motor);
 void ak_mit_send_data(ak_motor_handle_t *motor, float pos, float spd, float kp,
                       float kd, float torque);
 void ak_mit_exit_motor(ak_motor_handle_t *motor);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* __AK80_H */

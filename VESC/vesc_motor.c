@@ -134,7 +134,7 @@ void vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
     motor->vesc_id = id;
     motor->can_select = can_select;
 
-    can_list_add_new_node(can_select, id, 0xFF, (void *)motor,
+    can_list_add_new_node(can_select, (void *)motor, id, 0xFF, CAN_ID_EXT,
                           vesc_can_callback);
 }
 
