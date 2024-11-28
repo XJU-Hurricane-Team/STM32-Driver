@@ -63,9 +63,9 @@ typedef enum {
  * @param can_rx_header CAN消息头
  * @param recv_msg 接收到的数据
  */
-void vesc_can_callback(void *can_ptr, CAN_RxHeaderTypeDef *can_rx_header,
+void vesc_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
                        uint8_t *recv_msg) {
-    uint32_t can_id = can_rx_header->ExtId;
+    uint32_t can_id = can_rx_header->id;
 
     int32_t message_status = (can_id >> 8) & 0xFF;
     int32_t buffer_index = 0;
@@ -124,26 +124,43 @@ void vesc_can_callback(void *can_ptr, CAN_RxHeaderTypeDef *can_rx_header,
  * @param motor 电机结构体
  * @param id 电机ID
  * @param can_select 选择CAN1或者CAN2
+ * @return 初始化状态
+ * @retval - 0: 成功
+ * @retval - 1: `motor`指针为空
+ * @retval - 2: 添加 CAN 接收表为空
  */
-void vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
-                     can_select_t can_select) {
+uint8_t vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
+                        can_select_t can_select) {
     if (motor == NULL) {
-        return;
+        return 1;
     }
 
     motor->vesc_id = id;
     motor->can_select = can_select;
 
-    can_list_add_new_node(can_select, (void *)motor, id, 0xFF, CAN_ID_EXT,
-                          vesc_can_callback);
+    if (can_list_add_new_node(can_select, id, 0xFF, (void *)motor,
+                              vesc_can_callback) != 0) {
+        return 2;
+    }
+    return 0;
 }
 
 /**
  * @brief VESC电机销毁
- *
+ * @return 反初始化状态
+ * @retval - 0：成功
+ * @retval - 1：`motor`为空
+ * @retval - 2：移除错误
  */
-void vesc_motor_deinit(vesc_motor_handle_t *motor) {
-    can_list_del_node_by_pointer(motor->can_select, (void *)motor);
+uint8_t vesc_motor_deinit(vesc_motor_handle_t *motor) {
+    if (motor == NULL) {
+        return 1;
+    }
+    if (can_list_del_node_by_pointer(motor->can_select, (void *)motor) != 0) {
+        return 2;
+    }
+
+    return 0;
 }
 
 /**
@@ -153,6 +170,9 @@ void vesc_motor_deinit(vesc_motor_handle_t *motor) {
  * @param duty 占空比值(-1.0 ~ 1.0)
  */
 void vesc_motor_set_duty(vesc_motor_handle_t *motor, float duty) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[4];
     buffer_append_float32(buffer, duty, 100000.0f, &index);
@@ -167,6 +187,9 @@ void vesc_motor_set_duty(vesc_motor_handle_t *motor, float duty) {
  * @param current 电流值(-2e6 ~ 2e6)
  */
 void vesc_motor_set_current(vesc_motor_handle_t *motor, float current) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[4];
     buffer_append_float32(buffer, current, 1000.0f, &index);
@@ -182,6 +205,9 @@ void vesc_motor_set_current(vesc_motor_handle_t *motor, float current) {
  * @param current 电流值(-2e6 ~ 2e6)
  */
 void vesc_motor_set_break_current(vesc_motor_handle_t *motor, float current) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[4];
     buffer_append_float32(buffer, current, 1000.0f, &index);
@@ -197,6 +223,9 @@ void vesc_motor_set_break_current(vesc_motor_handle_t *motor, float current) {
  * @param erpm 转速值
  */
 void vesc_motor_set_erpm(vesc_motor_handle_t *motor, float erpm) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[4];
     buffer_append_float32(buffer, erpm, 1.0f, &index);
@@ -211,6 +240,9 @@ void vesc_motor_set_erpm(vesc_motor_handle_t *motor, float erpm) {
  * @param pos 角度值
  */
 void vesc_motor_set_pos(vesc_motor_handle_t *motor, float pos) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[4];
     buffer_append_float32(buffer, pos, 1.0f, &index);
@@ -226,6 +258,9 @@ void vesc_motor_set_pos(vesc_motor_handle_t *motor, float pos) {
  */
 void vesc_motor_set_relative_current(vesc_motor_handle_t *motor,
                                      float current) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[4];
     buffer_append_float32(buffer, current, 100000.0f, &index);
@@ -242,6 +277,9 @@ void vesc_motor_set_relative_current(vesc_motor_handle_t *motor,
  */
 void vesc_motor_set_relative_break_current(vesc_motor_handle_t *motor,
                                            float current) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[4];
     buffer_append_float32(buffer, current, 100000.0f, &index);
@@ -261,6 +299,9 @@ void vesc_motor_set_relative_break_current(vesc_motor_handle_t *motor,
  */
 void vesc_motor_set_current_limit(vesc_motor_handle_t *motor, float min_current,
                                   float max_current, bool store_to_rom) {
+    if (motor == NULL) {
+        return;
+    }
     int32_t index = 0;
     uint8_t buffer[8];
     buffer_append_float32(buffer, min_current, 1000.0f, &index);
