@@ -151,7 +151,7 @@ void dm_motor_enable(dm_handle_t *motor) {
 }
 
 /**
- * @brief 电机失能
+ * @brief 电机使能
  *
  * @param motor 电机指针
  */
