@@ -11,7 +11,11 @@
 #ifndef __VESC_H
 #define __VESC_H
 
-#include "can.h"
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "CSP_Config.h"
 
 #include <stdbool.h>
 
@@ -72,5 +76,9 @@ void vesc_motor_set_relative_break_current(vesc_motor_handle_t *motor,
                                            float current);
 void vesc_motor_set_current_limit(vesc_motor_handle_t *motor, float min_current,
                                   float max_current, bool store_to_rom);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* __VESC_H */

@@ -82,12 +82,12 @@ static const float ak_mit_param_limit[7][2] = {
  * @param can_rx_header CAN消息头
  * @param recv_msg 接收到的数据
  */
-static void ak_can_callback(void *can_ptr, CAN_RxHeaderTypeDef *can_rx_header,
+static void ak_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
                             uint8_t *recv_msg) {
     ak_motor_handle_t *ak_target = (ak_motor_handle_t *)can_ptr;
     int32_t buffer_index = 0;
 
-    if (can_rx_header->IDE == CAN_ID_EXT) {
+    if (can_rx_header->id == CAN_ID_EXT) {
         /* 扩展帧, 伺服模式 */
         ak_target->motor_pos =
             buffer_get_float16(recv_msg, 10.0f, &buffer_index);
@@ -96,7 +96,7 @@ static void ak_can_callback(void *can_ptr, CAN_RxHeaderTypeDef *can_rx_header,
         ak_target->motor_cur_troq =
             buffer_get_float16(recv_msg, 10.0f, &buffer_index);
 
-    } else if (can_rx_header->IDE == CAN_ID_STD) {
+    } else if (can_rx_header->id == CAN_ID_STD) {
         /* 标准帧, 运控模式 */
         int16_t pos_int = (recv_msg[1] << 8) | recv_msg[2];
         int16_t spd_int = (recv_msg[3] << 4) | (recv_msg[4] >> 4);
@@ -128,23 +128,48 @@ static void ak_can_callback(void *can_ptr, CAN_RxHeaderTypeDef *can_rx_header,
  * @param id CAN ID
  * @param model AK电机型号
  * @param can_select 选择CAN1还是CAN2
+ * @return 初始化状态：
+ * @retval - 0：成功
+ * @retval - 1: `motor`指针为空
+ * @retval - 2: 添加 CAN 接收列表错误
  */
-void ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
-                   ak_motor_model_t model, can_select_t can_select) {
+uint8_t ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
+                      ak_motor_model_t model, can_select_t can_select) {
+    if (motor == NULL) {
+        return 1;
+    }
+
     motor->controller_id = id;
     motor->motor_model = model;
     motor->can_select = can_select;
-    can_list_add_new_node(can_select, (void *)motor, id, 0xFF, CAN_ID_EXT,
-                          ak_can_callback);
+
+    if (can_list_add_new_node(can_select, id, 0xFF, (void *)motor,
+                              ak_can_callback) != 0) {
+        return 2;
+    }
+
+    return 0;
 }
 
 /**
  * @brief 销毁AK电机, 从链表中删除
  *
  * @param motor AK电机对象指针
+ * @return 反初始化状态
+ * @retval - 0: 成功
+ * @retval - 1: `motor`为空
+ * @retval - 2: 移除错误
  */
-void ak_motor_deinit(ak_motor_handle_t *motor) {
-    can_list_del_node_by_pointer(motor->can_select, motor);
+uint8_t ak_motor_deinit(ak_motor_handle_t *motor) {
+    if (motor == NULL) {
+        return 1;
+    }
+
+    if (can_list_del_node_by_pointer(motor->can_select, motor) != 0) {
+        return 2;
+    }
+
+    return 0;
 }
 
 /******************************************************************************
@@ -184,6 +209,10 @@ static inline void param_limit(float *value, float min_value, float max_value) {
  * @param duty 占空比, 范围`0 ~ 1.0`
  */
 void ak_servo_set_duty(ak_motor_handle_t *motor, float duty) {
+    if (motor == NULL) {
+        return;
+    }
+
     param_limit(&duty, 0, MAX_PWM);
     int32_t send_index = 0;
     uint8_t buffer[4];
@@ -203,6 +232,9 @@ void ak_servo_set_duty(ak_motor_handle_t *motor, float duty) {
  * @note 由于电机`输出扭矩 = iq * KT`, 所以可以当作扭矩环使用
  */
 void ak_servo_set_current(ak_motor_handle_t *motor, float current) {
+    if (motor == NULL) {
+        return;
+    }
     param_limit(&current, -MAX_CURRENT, MAX_CURRENT);
     int32_t send_index = 0;
     uint8_t buffer[4];
@@ -221,6 +253,9 @@ void ak_servo_set_current(ak_motor_handle_t *motor, float current) {
  * @param current 刹车电流, 范围`0 ~ 60000 mA`
  */
 void ak_servo_set_cb(ak_motor_handle_t *motor, float current) {
+    if (motor == NULL) {
+        return;
+    }
     param_limit(&current, -MAX_CURRENT, MAX_CURRENT);
     int32_t send_index = 0;
     uint8_t buffer[4];
@@ -240,6 +275,9 @@ void ak_servo_set_cb(ak_motor_handle_t *motor, float current) {
  * @note `erpm = rpm * 极对数`
  */
 void ak_servo_set_rpm(ak_motor_handle_t *motor, float rpm) {
+    if (motor == NULL) {
+        return;
+    }
     param_limit(&rpm, -MAX_VELOCITY, MAX_VELOCITY);
     int32_t send_index = 0;
     uint8_t buffer[4];
@@ -259,6 +297,9 @@ void ak_servo_set_rpm(ak_motor_handle_t *motor, float rpm) {
  * @note 默认速度12000erpm, 加速度40000erpm
  */
 void ak_servo_set_pos(ak_motor_handle_t *motor, float pos) {
+    if (motor == NULL) {
+        return;
+    }
     param_limit(&pos, -MAX_POSITION, MAX_POSITION);
     int32_t send_index = 0;
     uint8_t buffer[4];
@@ -278,6 +319,9 @@ void ak_servo_set_pos(ak_motor_handle_t *motor, float pos) {
  */
 void ak_servo_set_origin(ak_motor_handle_t *motor,
                          ak_origin_mode_t set_origin_mode) {
+    if (motor == NULL) {
+        return;
+    }
     uint8_t buffer = set_origin_mode;
 
     can_send_message(
@@ -299,6 +343,9 @@ void ak_servo_set_origin(ak_motor_handle_t *motor,
  */
 void ak_servo_set_pos_spd(ak_motor_handle_t *motor, float pos, float spd,
                           float rpa) {
+    if (motor == NULL) {
+        return;
+    }
     param_limit(&pos, -MAX_POSITION, MAX_POSITION);
     param_limit(&rpa, 0.0f, MAX_ACCELERATION);
     param_limit(&spd, MIN_POSITION_VELOCITY, MAX_POSITION);
@@ -331,6 +378,9 @@ void ak_servo_set_pos_spd(ak_motor_handle_t *motor, float pos, float spd,
  * @attention 必须先进入控制模式才可以控制电机!
  */
 void ak_mit_enter_motor(ak_motor_handle_t *motor) {
+    if (motor == NULL) {
+        return;
+    }
     uint8_t data[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0XFC};
     can_send_message(motor->can_select, CAN_ID_STD, motor->controller_id, 8,
                      data);
@@ -342,6 +392,9 @@ void ak_mit_enter_motor(ak_motor_handle_t *motor) {
  * @param motor 电机对象
  */
 void ak_mit_set_origin(ak_motor_handle_t *motor) {
+    if (motor == NULL) {
+        return;
+    }
     uint8_t data[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0XFE};
     can_send_message(motor->can_select, CAN_ID_STD, motor->controller_id, 8,
                      data);
@@ -360,6 +413,9 @@ void ak_mit_set_origin(ak_motor_handle_t *motor) {
  */
 void ak_mit_send_data(ak_motor_handle_t *motor, float pos, float spd, float kp,
                       float kd, float torque) {
+    if (motor == NULL) {
+        return;
+    }
     /* 转换成整数 */
     int16_t pos_int =
         float_to_uint(pos, -AK_MIT_POSITION_LIMIT, AK_MIT_POSITION_LIMIT, 16);
@@ -394,6 +450,9 @@ void ak_mit_send_data(ak_motor_handle_t *motor, float pos, float spd, float kp,
  * @param motor 电机对象
  */
 void ak_mit_exit_motor(ak_motor_handle_t *motor) {
+    if (motor == NULL) {
+        return;
+    }
     uint8_t data[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0XFD};
     can_send_message(motor->can_select, CAN_ID_STD, motor->controller_id, 8,
                      data);
