@@ -137,7 +137,7 @@ uint8_t vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
     motor->vesc_id = id;
     motor->can_select = can_select;
 
-    if (can_list_add_new_node(can_select, id, 0xFF, (void *)motor,
+    if (can_list_add_new_node(can_select,(void *)motor, id, 0xFF,CAN_ID_STD,
                               vesc_can_callback) != 0) {
         return 2;
     }
@@ -155,7 +155,7 @@ uint8_t vesc_motor_deinit(vesc_motor_handle_t *motor) {
     if (motor == NULL) {
         return 1;
     }
-    if (can_list_del_node_by_pointer(motor->can_select, (void *)motor) != 0) {
+    if (can_list_del_node_by_id(motor->can_select,CAN_ID_STD,motor->vesc_id) != 0) {
         return 2;
     }
 
