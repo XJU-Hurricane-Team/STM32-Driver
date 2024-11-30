@@ -61,9 +61,9 @@ typedef struct {
     vesc_fault_code_t error_code; /*!< 错误码 */
 } vesc_motor_handle_t;
 
-void vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
+uint8_t vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
                      can_selected_t can_select);
-void vesc_motor_deinit(vesc_motor_handle_t *motor);
+uint8_t vesc_motor_deinit(vesc_motor_handle_t *motor);
 
 void vesc_motor_set_duty(vesc_motor_handle_t *motor, float duty);
 void vesc_motor_set_current(vesc_motor_handle_t *motor, float current);

@@ -28,7 +28,7 @@ typedef enum {
     AK80_8,
 
     AK_MODEL_RESERVE
-} ak_motor_model_t;
+} ak_model_t;
 
 /**
  * @brief 电机错误信息
@@ -60,8 +60,8 @@ typedef struct {
     uint32_t id;               /*!< CAN ID */
 
     ak_mode_t mode;              /*!< 电机模式 */
-    ak_motor_model_t model;      /*!< 电机型号 */
-    float posi;                  /*!< 电机位置 */
+    ak_model_t model;      /*!< 电机型号 */
+    float pos;                  /*!< 电机位置 */
     float spd;                   /*!< 电机速度 */
     float current_troq;          /*!< 电机电流，运控模式为扭矩 */
     int8_t motor_temperature;    /*!< 电机温度 */
@@ -77,10 +77,10 @@ typedef enum {
     AK_ORIGIN_RESET_DEFAULT   /*!< 恢复默认零点 (参数自动保存) */
 } ak_origin_mode_t;
 
-void ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
-                   ak_motor_model_t model, ak_mode_t mode,
+uint8_t ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
+                   ak_model_t model, ak_mode_t mode,
                    can_selected_t can_select);
-void ak_motor_deinit(ak_motor_handle_t *motor);
+uint8_t ak_motor_deinit(ak_motor_handle_t *motor);
 
 /* 伺服模式 */
 void ak_servo_set_duty(ak_motor_handle_t *motor, float duty);

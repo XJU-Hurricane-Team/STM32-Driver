@@ -179,9 +179,9 @@ uint8_t ak_motor_deinit(ak_motor_handle_t *motor) {
 
     uint32_t id_type;
 
-    if (mode == AK_MODE_MIT) {
+    if (motor->mode == AK_MODE_MIT) {
         id_type = CAN_ID_STD;
-    } else if (mode == AK_MODE_SERVO) {
+    } else if (motor->mode == AK_MODE_SERVO) {
         id_type = CAN_ID_EXT;
     } else {
         return 3;
