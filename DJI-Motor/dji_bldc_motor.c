@@ -25,7 +25,7 @@ static struct {
  * @param can_select 选择哪一个CAN来通信
  */
 void dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
-                    dji_can_id_t can_id, can_select_t can_select) {
+                    dji_can_id_t can_id, can_selected_t can_select) {
     dji_motor_can_lists[can_select][can_id - 0x201].motor_point = motor;
 
     motor->motor_model = motor_model;
@@ -38,7 +38,7 @@ void dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
  * @param motor 电机结构体指针
  * @param can_select CAN1还是CAN2
  */
-void dji_motor_deinit(dji_motor_handle_t *motor, can_select_t can_select) {
+void dji_motor_deinit(dji_motor_handle_t *motor, can_selected_t can_select) {
     dji_motor_can_lists[can_select][motor->motor_id - 0x201].motor_point =
         NULL;
 }
@@ -50,7 +50,7 @@ void dji_motor_deinit(dji_motor_handle_t *motor, can_select_t can_select) {
  * @param can_id CAN ID
  * @param recv_msg CAN消息
  */
-void dji_motor_can_recv_callback(can_select_t can_select, uint32_t can_id,
+void dji_motor_can_recv_callback(can_selected_t can_select, uint32_t can_id,
                                  uint8_t *recv_msg) {
 
     dji_motor_handle_t *motor_point;
@@ -158,7 +158,7 @@ void dji_motor_can_recv_callback(can_select_t can_select, uint32_t can_id,
  * @param iq3 电机3电流
  * @param iq4 电机4电流
  */
-void dji_motor_set_current(can_select_t can_select, uint16_t can_identify,
+void dji_motor_set_current(can_selected_t can_select, uint16_t can_identify,
                            int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4) {
     if (can_identify != DJI_MOTOR_GROUP1 && can_identify != DJI_MOTOR_GROUP2) {
         /* 标识符不合法 */
@@ -191,7 +191,7 @@ void dji_motor_set_current(can_select_t can_select, uint16_t can_identify,
  * @param voltage3 电机3电压
  * @param voltage4 电机4电压
  */
-void dji_gm6020_voltage_control(can_select_t can_select, uint16_t can_identify,
+void dji_gm6020_voltage_control(can_selected_t can_select, uint16_t can_identify,
                                 int16_t voltage1, int16_t voltage2,
                                 int16_t voltage3, int16_t voltage4) {
     if (can_identify != DJI_GM6020_VOLTAGE_GROUP1 &&
@@ -224,7 +224,7 @@ void dji_gm6020_voltage_control(can_select_t can_select, uint16_t can_identify,
  * @param current3 电机3电流
  * @param current4 电机4电流
  */
-void dji_gm6020_current_control(can_select_t can_select, uint16_t can_identify,
+void dji_gm6020_current_control(can_selected_t can_select, uint16_t can_identify,
                                 int16_t current1, int16_t current2,
                                 int16_t current3, int16_t current4) {
     if (can_identify != DJI_GM6020_CURRENT_GROUP1 &&

@@ -28,15 +28,16 @@ https://www.cubemars.com/images/file/20240611/1718084209493165.pdf
  * @brief AK电机句柄
  */
 typedef struct {
-    can_select_t can_select; /*!< 选择CAN1还是CAN2 */
-    uint32_t controller_id;  /*!< CAN ID */
+    can_selected_t can_select; /*!< 选择 CAN */
+    uint32_t id;               /*!< CAN ID */
 
-    ak_motor_model_t motor_model; /*!< 电机型号 */
-    float motor_pos;              /*!< 电机位置 */
-    float motor_spd;              /*!< 电机速度 */
-    float motor_cur_troq;         /*!< 电机电流, 运控模式为扭矩 */
-    int8_t motor_temperature;     /*!< 电机温度 */
-    ak_motor_error_t error_code;  /*!< 电机错误码 */
+    ak_mode_t mode;              /*!< 电机模式 */
+    ak_motor_model_t model;      /*!< 电机型号 */
+    float posi;                  /*!< 电机位置 */
+    float spd;                   /*!< 电机速度 */
+    float current_troq;          /*!< 电机电流，运控模式为扭矩 */
+    int8_t motor_temperature;    /*!< 电机温度 */
+    ak_motor_error_t error_code; /*!< 电机错误码 */
 } ak_motor_handle_t;
 ```
 错误可以通过`ak_motor_error_t`枚举来进行相应的处理。
@@ -46,6 +47,7 @@ typedef struct {
   - `motor`电机句柄
   - `id`电机的ID
   - `model`电机型号
+  - `mode` 电机模式
   - `can_select`选择CAN1或CAN2
 - `ak_motor_deinit`反初始化电机
 

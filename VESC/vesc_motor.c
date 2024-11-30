@@ -1,7 +1,7 @@
 /**
  * @file    vesc_motor.c
  * @author  Deadline039
- * @brief   VESC电机控制
+ * @brief   VESC 电机控制
  * @version 0.1
  * @date    2024-03-16
  * @see
@@ -16,7 +16,7 @@
 #include <stdlib.h>
 
 /**
- * @brief 发送数据ID包装
+ * @brief 发送数据 ID 包装
  * @note These command numbers are put in the second byte of the 29 bit ID
  *       for the extended CAN frame. You need an extended frame (29 bits)
  *       vs. standard frame (11 bits) since bits 0-7 are reserved for
@@ -56,10 +56,10 @@ typedef enum {
 } can_packet_id_t;
 
 /**
- * @brief CAN接收回调函数
+ * @brief CAN 接收回调函数
  *
- * @param can_ptr CAN列表中的指针, 在这里就是电机对象
- * @param can_rx_header CAN消息头
+ * @param can_ptr CAN 列表中的指针，在这里就是电机对象
+ * @param can_rx_header CAN 消息头
  * @param recv_msg 接收到的数据
  */
 void vesc_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
@@ -118,18 +118,18 @@ void vesc_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
 }
 
 /**
- * @brief 初始化VESC电机
+ * @brief 初始化 VESC 电机
  *
  * @param motor 电机结构体
- * @param id 电机ID
- * @param can_select 选择CAN1或者CAN2
+ * @param id 电机 ID
+ * @param can_select 选择 CAN1 或者 CAN2
  * @return 初始化状态
  * @retval - 0: 成功
- * @retval - 1: `motor`指针为空
+ * @retval - 1: `motor` 指针为空
  * @retval - 2: 添加 CAN 接收表为空
  */
 uint8_t vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
-                        can_select_t can_select) {
+                        can_selected_t can_select) {
     if (motor == NULL) {
         return 1;
     }
@@ -145,10 +145,10 @@ uint8_t vesc_motor_init(vesc_motor_handle_t *motor, uint8_t id,
 }
 
 /**
- * @brief VESC电机销毁
+ * @brief VESC 电机销毁
  * @return 反初始化状态
  * @retval - 0：成功
- * @retval - 1：`motor`为空
+ * @retval - 1：`motor` 为空
  * @retval - 2：移除错误
  */
 uint8_t vesc_motor_deinit(vesc_motor_handle_t *motor) {
@@ -163,10 +163,10 @@ uint8_t vesc_motor_deinit(vesc_motor_handle_t *motor) {
 }
 
 /**
- * @brief 设置VESC电机占空比, 直接修改MOSFET的PWM输出
+ * @brief 设置 VESC 电机占空比，直接修改 MOSFET 的 PWM 输出
  *
  * @param motor 要控制的电机
- * @param duty 占空比值(-1.0 ~ 1.0)
+ * @param duty 占空比值 (-1.0 ~ 1.0)
  */
 void vesc_motor_set_duty(vesc_motor_handle_t *motor, float duty) {
     if (motor == NULL) {
@@ -180,10 +180,10 @@ void vesc_motor_set_duty(vesc_motor_handle_t *motor, float duty) {
 }
 
 /**
- * @brief 设置VESC电机电流(毫安)
+ * @brief 设置 VESC 电机电流 (毫安)
  *
  * @param motor 要控制的电机
- * @param current 电流值(-2e6 ~ 2e6)
+ * @param current 电流值 (-2e6 ~ 2e6)
  */
 void vesc_motor_set_current(vesc_motor_handle_t *motor, float current) {
     if (motor == NULL) {
@@ -198,10 +198,10 @@ void vesc_motor_set_current(vesc_motor_handle_t *motor, float current) {
 }
 
 /**
- * @brief 设置VESC电机刹车电流(毫安)
+ * @brief 设置 VESC 电机刹车电流 (毫安)
  *
  * @param motor 要控制的电机
- * @param current 电流值(-2e6 ~ 2e6)
+ * @param current 电流值 (-2e6 ~ 2e6)
  */
 void vesc_motor_set_break_current(vesc_motor_handle_t *motor, float current) {
     if (motor == NULL) {
@@ -216,7 +216,7 @@ void vesc_motor_set_break_current(vesc_motor_handle_t *motor, float current) {
 }
 
 /**
- * @brief 设置VESC电机转速
+ * @brief 设置 VESC 电机转速
  *
  * @param motor 要控制的电机
  * @param erpm 转速值
@@ -233,7 +233,7 @@ void vesc_motor_set_erpm(vesc_motor_handle_t *motor, float erpm) {
 }
 
 /**
- * @brief 设置VESC电机位置(角度)
+ * @brief 设置 VESC 电机位置 (角度)
  *
  * @param motor 要控制的电机
  * @param pos 角度值
@@ -250,10 +250,10 @@ void vesc_motor_set_pos(vesc_motor_handle_t *motor, float pos) {
 }
 
 /**
- * @brief 设置VESC电机相对电流
+ * @brief 设置 VESC 电机相对电流
  *
  * @param motor 要控制的电机
- * @param current 电流值(-1 ~ 1)
+ * @param current 电流值 (-1 ~ 1)
  */
 void vesc_motor_set_relative_current(vesc_motor_handle_t *motor,
                                      float current) {
@@ -269,10 +269,10 @@ void vesc_motor_set_relative_current(vesc_motor_handle_t *motor,
 }
 
 /**
- * @brief 设置VESC电机相对刹车电流
+ * @brief 设置 VESC 电机相对刹车电流
  *
  * @param motor 要控制的电机
- * @param current 电流值(-1 ~ 1)
+ * @param current 电流值 (-1 ~ 1)
  */
 void vesc_motor_set_relative_break_current(vesc_motor_handle_t *motor,
                                            float current) {
@@ -288,13 +288,13 @@ void vesc_motor_set_relative_break_current(vesc_motor_handle_t *motor,
 }
 
 /**
- * @brief 设置VESC电机输入电流限制
+ * @brief 设置 VESC 电机输入电流限制
  *
  * @param motor 要控制的电机
- * @param min_current 最小电流值(-2e6 ~ 2e6)
- * @param max_current 最大电流值(-2e6 ~ 2e6)
- * @param can_select 选择CAN1或CAN2
- * @param store_to_rom 是否存储到ROM, `true`为存储到ROM
+ * @param min_current 最小电流值 (-2e6 ~ 2e6)
+ * @param max_current 最大电流值 (-2e6 ~ 2e6)
+ * @param can_select 选择 CAN1 或 CAN2
+ * @param store_to_rom 是否存储到 ROM, `true` 为存储到 ROM
  */
 void vesc_motor_set_current_limit(vesc_motor_handle_t *motor, float min_current,
                                   float max_current, bool store_to_rom) {

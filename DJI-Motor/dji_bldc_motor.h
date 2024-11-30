@@ -126,20 +126,20 @@ typedef struct {
 } dji_motor_handle_t;
 
 void dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
-                    dji_can_id_t can_id, can_select_t can_select);
-void dji_motor_deinit(dji_motor_handle_t *motor, can_select_t can_select);
+                    dji_can_id_t can_id, can_selected_t can_select);
+void dji_motor_deinit(dji_motor_handle_t *motor, can_selected_t can_select);
 
 #if (DJI_MOTOR_USE_M3508_2006 == 1)
-void dji_motor_set_current(can_select_t can_select, uint16_t can_identify,
+void dji_motor_set_current(can_selected_t can_select, uint16_t can_identify,
                            int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4);
 #endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
 #if (DJI_MOTOR_USE_GM6020 == 1)
-void dji_gm6020_voltage_control(can_select_t can_select, uint16_t can_identify,
+void dji_gm6020_voltage_control(can_selected_t can_select, uint16_t can_identify,
                                 int16_t voltage1, int16_t voltage2,
                                 int16_t voltage3, int16_t voltage4);
 
-void dji_gm6020_current_control(can_select_t can_select, uint16_t can_identify,
+void dji_gm6020_current_control(can_selected_t can_select, uint16_t can_identify,
                                 int16_t current1, int16_t current2,
                                 int16_t current3, int16_t current4);
 #endif /* DJI_MOTOR_USE_GM6020 == 1 */

@@ -25,7 +25,9 @@ typedef enum {
     AK80_6,
     AK80_9,
     AK80_80_64,
-    AK80_8
+    AK80_8,
+
+    AK_MODEL_RESERVE
 } ak_motor_model_t;
 
 /**
@@ -43,30 +45,6 @@ typedef enum {
 } ak_motor_error_t;
 
 /**
- * @brief AK 电机句柄
- */
-typedef struct {
-    can_select_t can_select; /*!< 选择 CAN */
-    uint32_t controller_id;  /*!< CAN ID */
-
-    ak_motor_model_t motor_model; /*!< 电机型号 */
-    float motor_pos;              /*!< 电机位置 */
-    float motor_spd;              /*!< 电机速度 */
-    float motor_cur_troq;         /*!< 电机电流，运控模式为扭矩 */
-    int8_t motor_temperature;     /*!< 电机温度 */
-    ak_motor_error_t error_code;  /*!< 电机错误码 */
-} ak_motor_handle_t;
-
-/**
- * @brief 设置原点模式
- */
-typedef enum {
-    AK_ORIGIN_TEMPORARY = 0U, /*!<设置临时原点 (断电消除) */
-    AK_ORIGIN_PERMANENT,      /*!< 设置永久零点 (参数自动保存) */
-    AK_ORIGIN_RESET_DEFAULT   /*!< 恢复默认零点 (参数自动保存) */
-} ak_origin_mode_t;
-
-/**
  * @brief 电机模式
  */
 typedef enum {
@@ -74,9 +52,34 @@ typedef enum {
     AK_MODE_SERVO,    /*!< 伺服模式 */
 } ak_mode_t;
 
+/**
+ * @brief AK 电机句柄
+ */
+typedef struct {
+    can_selected_t can_select; /*!< 选择 CAN */
+    uint32_t id;               /*!< CAN ID */
+
+    ak_mode_t mode;              /*!< 电机模式 */
+    ak_motor_model_t model;      /*!< 电机型号 */
+    float posi;                  /*!< 电机位置 */
+    float spd;                   /*!< 电机速度 */
+    float current_troq;          /*!< 电机电流，运控模式为扭矩 */
+    int8_t motor_temperature;    /*!< 电机温度 */
+    ak_motor_error_t error_code; /*!< 电机错误码 */
+} ak_motor_handle_t;
+
+/**
+ * @brief 设置原点模式
+ */
+typedef enum {
+    AK_ORIGIN_TEMPORARY = 0U, /*!< 设置临时原点 (断电消除) */
+    AK_ORIGIN_PERMANENT,      /*!< 设置永久零点 (参数自动保存) */
+    AK_ORIGIN_RESET_DEFAULT   /*!< 恢复默认零点 (参数自动保存) */
+} ak_origin_mode_t;
+
 void ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
                    ak_motor_model_t model, ak_mode_t mode,
-                   can_select_t can_select);
+                   can_selected_t can_select);
 void ak_motor_deinit(ak_motor_handle_t *motor);
 
 /* 伺服模式 */

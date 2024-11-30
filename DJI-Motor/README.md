@@ -21,7 +21,7 @@ https://www.robomaster.com/zh-CN/products/components/general/M2006
 接收中断参考以下代码实现：
 
 ```
-extern void dji_motor_can_recv_callback(can_select_t can_select,
+extern void dji_motor_can_recv_callback(can_selected_t can_select,
                                         uint32_t can_id, uint8_t *recv_msg);
 /**
  * @brief CAN RX FIFO0挂起中断回调

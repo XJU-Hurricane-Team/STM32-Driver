@@ -147,7 +147,7 @@ void dm_motor_enable(dm_handle_t *motor) {
             return;
     }
 
-    can_send_mesage(motor->can_select, CAN_ID_STD, id, 8, send_msg);
+    can_send_message(motor->can_select, CAN_ID_STD, id, 8, send_msg);
 }
 
 /**
@@ -180,7 +180,7 @@ void dm_motor_disable(dm_handle_t *motor) {
             return;
     }
 
-    can_send_mesage(motor->can_select, CAN_ID_STD, id, 8, send_msg);
+    can_send_message(motor->can_select, CAN_ID_STD, id, 8, send_msg);
 }
 
 /**
@@ -212,7 +212,7 @@ void dm_save_zero(dm_handle_t *motor) {
         default:
             return;
     }
-    can_send_mesage(motor->can_select, CAN_ID_STD, id, 8, send_msg);
+    can_send_message(motor->can_select, CAN_ID_STD, id, 8, send_msg);
 }
 
 /**
@@ -244,7 +244,7 @@ void dm_clear_error(dm_handle_t *motor) {
         default:
             return;
     }
-    can_send_mesage(motor->can_select, CAN_ID_STD, id, 8, send_msg);
+    can_send_message(motor->can_select, CAN_ID_STD, id, 8, send_msg);
 }
 
 /**
@@ -278,7 +278,7 @@ void dm_mit_ctrl(dm_handle_t *motor, float position, float speed, float kp,
     send_msg[6] = ((kd_tmp & 0xF) << 4) | (torq_tmp >> 8);
     send_msg[7] = torq_tmp;
 
-    can_send_mesage(motor->can_select, CAN_ID_STD, motor->device_id + MIT_MODE,
+    can_send_message(motor->can_select, CAN_ID_STD, motor->device_id + MIT_MODE,
                     8, send_msg);
 }
 
@@ -298,7 +298,7 @@ void dm_pos_speed_ctrl(dm_handle_t *motor, float position, float speed) {
     memcpy(&send_msg[0], &position, sizeof(float));
     memcpy(&send_msg[4], &speed, sizeof(float));
 
-    can_send_mesage(motor->can_select, CAN_ID_STD,
+    can_send_message(motor->can_select, CAN_ID_STD,
                     motor->device_id + POS_SPEED_MODE, 8, send_msg);
 }
 
@@ -316,6 +316,6 @@ void dm_speed_ctrl(dm_handle_t *motor, float speed) {
     uint8_t send_msg[4];
     memcpy(send_msg, &speed, sizeof(float));
 
-    can_send_mesage(motor->can_select, CAN_ID_STD,
+    can_send_message(motor->can_select, CAN_ID_STD,
                     motor->device_id + SPEED_MODE, 4, send_msg);
 }

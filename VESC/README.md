@@ -26,7 +26,7 @@ https://vesc-project.com/sites/default/files/imce/u15301/VESC6_CAN_CommandsTelem
  */
 typedef struct {
     uint8_t vesc_id;         /*!< 电机 ID */
-    can_select_t can_select; /*!< 选择CAN1还是CAN2 */
+    can_selected_t can_select; /*!< 选择CAN1还是CAN2 */
 
     float input_voltage; /*!< 电机电压 */
     float duty;          /*!< MOSFET占空比 */

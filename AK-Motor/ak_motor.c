@@ -89,11 +89,9 @@ static void ak_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
 
     if (can_rx_header->id_type == CAN_ID_EXT) {
         /* 扩展帧，伺服模式 */
-        ak_target->motor_pos =
-            buffer_get_float16(recv_msg, 10.0f, &buffer_index);
-        ak_target->motor_spd =
-            buffer_get_float16(recv_msg, 0.01f, &buffer_index);
-        ak_target->motor_cur_troq =
+        ak_target->pos = buffer_get_float16(recv_msg, 10.0f, &buffer_index);
+        ak_target->spd = buffer_get_float16(recv_msg, 0.01f, &buffer_index);
+        ak_target->current_troq =
             buffer_get_float16(recv_msg, 10.0f, &buffer_index);
 
     } else if (can_rx_header->id_type == CAN_ID_STD) {
@@ -102,19 +100,16 @@ static void ak_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
         int16_t spd_int = (recv_msg[3] << 4) | (recv_msg[4] >> 4);
         int16_t torq_int = ((recv_msg[4] * 0xF) << 8) | recv_msg[5];
 
-        ak_target->motor_pos = uint_to_float(pos_int, -AK_MIT_POSITION_LIMIT,
-                                             AK_MIT_POSITION_LIMIT, 16);
-        ak_target->motor_spd = uint_to_float(
+        ak_target->pos = uint_to_float(pos_int, -AK_MIT_POSITION_LIMIT,
+                                       AK_MIT_POSITION_LIMIT, 16);
+        ak_target->spd = uint_to_float(
             spd_int,
-            -ak_mit_param_limit[ak_target->motor_model][MIT_SPEED_LIMIT_INDEX],
-            ak_mit_param_limit[ak_target->motor_model][MIT_SPEED_LIMIT_INDEX],
-            12);
-        ak_target->motor_cur_troq = uint_to_float(
+            -ak_mit_param_limit[ak_target->model][MIT_SPEED_LIMIT_INDEX],
+            ak_mit_param_limit[ak_target->model][MIT_SPEED_LIMIT_INDEX], 12);
+        ak_target->current_troq = uint_to_float(
             torq_int,
-            -ak_mit_param_limit[ak_target->motor_model]
-                               [MIT_TORQUE_LIMMIT_INDEX],
-            ak_mit_param_limit[ak_target->motor_model][MIT_TORQUE_LIMMIT_INDEX],
-            12);
+            -ak_mit_param_limit[ak_target->model][MIT_TORQUE_LIMMIT_INDEX],
+            ak_mit_param_limit[ak_target->model][MIT_TORQUE_LIMMIT_INDEX], 12);
     }
 
     ak_target->motor_temperature = recv_msg[6];
@@ -135,23 +130,28 @@ static void ak_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
  * @retval - 2: 添加 CAN 接收列表错误
  * @retval - 3: 参数错误
  */
-uint8_t ak_motor_init(ak_motor_handle_t *motor, uint32_t id,
-                      ak_motor_model_t model, ak_mode_t mode,
-                      can_select_t can_select) {
+uint8_t ak_motor_init(ak_motor_handle_t *motor, uint32_t id, ak_model_t model,
+                      ak_mode_t mode, can_selected_t can_select) {
     if (motor == NULL) {
         return 1;
     }
 
-    motor->controller_id = id;
-    motor->motor_model = model;
+    motor->id = id;
+    motor->model = model;
     motor->can_select = can_select;
 
-    uint32_t id_type;
+    uint32_t id_type, id_mask;
     if (mode == AK_MODE_MIT) {
         id_type = CAN_ID_STD;
+        id_mask = 0x7FF;
     } else if (mode == AK_MODE_SERVO) {
         id_type = CAN_ID_EXT;
+        id_mask = 0xFF;
     } else {
+        return 3;
+    }
+
+    if (model >= AK_MODEL_RESERVE) {
         return 3;
     }
 
@@ -177,7 +177,17 @@ uint8_t ak_motor_deinit(ak_motor_handle_t *motor) {
         return 1;
     }
 
-    if (can_list_del_node_by_id(motor->can_select, motor->controller_id) != 0) {
+    uint32_t id_type;
+
+    if (mode == AK_MODE_MIT) {
+        id_type = CAN_ID_STD;
+    } else if (mode == AK_MODE_SERVO) {
+        id_type = CAN_ID_EXT;
+    } else {
+        return 3;
+    }
+
+    if (can_list_del_node_by_id(motor->can_select, id_type, motor->id) != 0) {
         return 2;
     }
 
@@ -230,10 +240,9 @@ void ak_servo_set_duty(ak_motor_handle_t *motor, float duty) {
     uint8_t buffer[4];
     buffer_append_int32(buffer, (int32_t)(duty * 100000.0f), &send_index);
 
-    can_send_message(
-        motor->can_select, CAN_ID_EXT,
-        canid_append_mode(motor->controller_id, CAN_PACKET_SET_PWM), send_index,
-        buffer);
+    can_send_message(motor->can_select, CAN_ID_EXT,
+                     canid_append_mode(motor->id, CAN_PACKET_SET_PWM),
+                     send_index, buffer);
 }
 
 /**
@@ -252,10 +261,9 @@ void ak_servo_set_current(ak_motor_handle_t *motor, float current) {
     uint8_t buffer[4];
     buffer_append_int32(buffer, (int32_t)(current * 1000.0f), &send_index);
 
-    can_send_message(
-        motor->can_select, CAN_ID_EXT,
-        canid_append_mode(motor->controller_id, CAN_PACKET_SET_CURRENT),
-        send_index, buffer);
+    can_send_message(motor->can_select, CAN_ID_EXT,
+                     canid_append_mode(motor->id, CAN_PACKET_SET_CURRENT),
+                     send_index, buffer);
 }
 
 /**
@@ -273,10 +281,9 @@ void ak_servo_set_cb(ak_motor_handle_t *motor, float current) {
     uint8_t buffer[4];
     buffer_append_int32(buffer, (int32_t)(current * 1000.0f), &send_index);
 
-    can_send_message(
-        motor->can_select, CAN_ID_EXT,
-        canid_append_mode(motor->controller_id, CAN_PACKET_SET_CURRENT_BRAKE),
-        send_index, buffer);
+    can_send_message(motor->can_select, CAN_ID_EXT,
+                     canid_append_mode(motor->id, CAN_PACKET_SET_CURRENT_BRAKE),
+                     send_index, buffer);
 }
 
 /**
@@ -295,10 +302,9 @@ void ak_servo_set_rpm(ak_motor_handle_t *motor, float rpm) {
     uint8_t buffer[4];
     buffer_append_int32(buffer, (int32_t)rpm, &send_index);
 
-    can_send_message(
-        motor->can_select, CAN_ID_EXT,
-        canid_append_mode(motor->controller_id, CAN_PACKET_SET_RPM), send_index,
-        buffer);
+    can_send_message(motor->can_select, CAN_ID_EXT,
+                     canid_append_mode(motor->id, CAN_PACKET_SET_RPM),
+                     send_index, buffer);
 }
 
 /**
@@ -317,10 +323,9 @@ void ak_servo_set_pos(ak_motor_handle_t *motor, float pos) {
     uint8_t buffer[4];
     buffer_append_int32(buffer, (int32_t)(pos * 10000.0f), &send_index);
 
-    can_send_message(
-        motor->can_select, CAN_ID_EXT,
-        canid_append_mode(motor->controller_id, CAN_PACKET_SET_POS), send_index,
-        buffer);
+    can_send_message(motor->can_select, CAN_ID_EXT,
+                     canid_append_mode(motor->id, CAN_PACKET_SET_POS),
+                     send_index, buffer);
 }
 
 /**
@@ -336,10 +341,9 @@ void ak_servo_set_origin(ak_motor_handle_t *motor,
     }
     uint8_t buffer = set_origin_mode;
 
-    can_send_message(
-        motor->can_select, CAN_ID_EXT,
-        canid_append_mode(motor->controller_id, CAN_PACKET_SET_ORIGIN_HERE), 1,
-        &buffer);
+    can_send_message(motor->can_select, CAN_ID_EXT,
+                     canid_append_mode(motor->id, CAN_PACKET_SET_ORIGIN_HERE),
+                     1, &buffer);
 }
 
 /**
@@ -368,10 +372,9 @@ void ak_servo_set_pos_spd(ak_motor_handle_t *motor, float pos, float spd,
     buffer_append_int32(buffer, (int32_t)(pos * 10000.0f), &send_index);
     buffer_append_int16(buffer, (int16_t)(spd / 10.0f), &send_index1);
     buffer_append_int16(buffer, (int16_t)(rpa / 10.0f), &send_index1);
-    can_send_message(
-        motor->can_select, CAN_ID_EXT,
-        canid_append_mode(motor->controller_id, CAN_PACKET_SET_POS_SPD),
-        send_index, buffer);
+    can_send_message(motor->can_select, CAN_ID_EXT,
+                     canid_append_mode(motor->id, CAN_PACKET_SET_POS_SPD),
+                     send_index, buffer);
 }
 
 /**
@@ -394,8 +397,7 @@ void ak_mit_enter_motor(ak_motor_handle_t *motor) {
         return;
     }
     uint8_t data[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0XFC};
-    can_send_message(motor->can_select, CAN_ID_STD, motor->controller_id, 8,
-                     data);
+    can_send_message(motor->can_select, CAN_ID_STD, motor->id, 8, data);
 }
 
 /**
@@ -408,8 +410,7 @@ void ak_mit_set_origin(ak_motor_handle_t *motor) {
         return;
     }
     uint8_t data[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0XFE};
-    can_send_message(motor->can_select, CAN_ID_STD, motor->controller_id, 8,
-                     data);
+    can_send_message(motor->can_select, CAN_ID_STD, motor->id, 8, data);
 }
 
 /**
@@ -432,14 +433,13 @@ void ak_mit_send_data(ak_motor_handle_t *motor, float pos, float spd, float kp,
     int16_t pos_int =
         float_to_uint(pos, -AK_MIT_POSITION_LIMIT, AK_MIT_POSITION_LIMIT, 16);
     int16_t spd_int = float_to_uint(
-        spd, -ak_mit_param_limit[motor->motor_model][MIT_SPEED_LIMIT_INDEX],
-        ak_mit_param_limit[motor->motor_model][MIT_SPEED_LIMIT_INDEX], 12);
+        spd, -ak_mit_param_limit[motor->model][MIT_SPEED_LIMIT_INDEX],
+        ak_mit_param_limit[motor->model][MIT_SPEED_LIMIT_INDEX], 12);
     int16_t kp_int = float_to_uint(kp, 0, AK_MIT_KP_LIMIT, 12);
     int16_t kd_int = float_to_uint(kd, 0, AK_MIT_KD_LIMIT, 12);
     int16_t torque_int = float_to_uint(
-        torque,
-        -ak_mit_param_limit[motor->motor_model][MIT_TORQUE_LIMMIT_INDEX],
-        ak_mit_param_limit[motor->motor_model][MIT_TORQUE_LIMMIT_INDEX], 12);
+        torque, -ak_mit_param_limit[motor->model][MIT_TORQUE_LIMMIT_INDEX],
+        ak_mit_param_limit[motor->model][MIT_TORQUE_LIMMIT_INDEX], 12);
 
     /* 填充缓冲区 */
     uint8_t data[8];
@@ -453,8 +453,7 @@ void ak_mit_send_data(ak_motor_handle_t *motor, float pos, float spd, float kp,
     data[6] =
         ((kd_int & 0xF) << 4) | (torque_int >> 8); /* kp 低 4 位，扭矩高 4 位 */
     data[7] = torque_int & 0xFF;                   /* 扭矩低 8 位 */
-    can_send_message(motor->can_select, CAN_ID_STD, motor->controller_id, 8,
-                     data);
+    can_send_message(motor->can_select, CAN_ID_STD, motor->id, 8, data);
 }
 
 /**
@@ -467,8 +466,7 @@ void ak_mit_exit_motor(ak_motor_handle_t *motor) {
         return;
     }
     uint8_t data[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0XFD};
-    can_send_message(motor->can_select, CAN_ID_STD, motor->controller_id, 8,
-                     data);
+    can_send_message(motor->can_select, CAN_ID_STD, motor->id, 8, data);
 }
 
 /**
