@@ -42,22 +42,6 @@ extern "C" {
 #define CAN_LIST_QUEUE_LENGTH  5
 #endif /* CAN_LIST_USE_RTOS */
 
-#ifndef CAN_ID_STD
-#define CAN_ID_STD (0x00000000U) /*!< Standard Id */
-#endif                           /* CAN_ID_STD */
-
-#ifndef CAN_ID_EXT
-#define CAN_ID_EXT (0x00000004U) /*!< Extended Id */
-#endif                           /* CAN_ID_EXT */
-
-#ifndef CAN_RTR_DATA
-#define CAN_RTR_DATA (0x00000000U) /*!< Data frame   */
-#endif                             /* CAN_RTR_DATA */
-
-#ifndef CAN_RTR_REMOTE
-#define CAN_RTR_REMOTE (0x00000002U) /*!< Remote frame */
-#endif                               /* CAN_RTR_REMOTE */
-
 typedef struct {
     uint32_t id;         /*!< Message ID.                                     */
     uint32_t id_type;    /*!< ID type, `CAN_ID_STD` or `CAN_ID_EXT`.          */
