@@ -23,7 +23,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "CSP_Config.h"
+#include <CSP_Config.h>
 
 #include <stdbool.h>
 

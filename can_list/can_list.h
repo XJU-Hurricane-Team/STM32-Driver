@@ -15,7 +15,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "CSP_Config.h"
+#include <CSP_Config.h>
 
 #define CAN_LIST_MAX_CAN_NUMBER 3
 

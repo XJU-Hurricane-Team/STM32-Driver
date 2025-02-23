@@ -13,7 +13,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "CSP_Config.h"
+#include <CSP_Config.h>
 
 /**
  * @brief 型号定义，不同型号对于不同的参数
