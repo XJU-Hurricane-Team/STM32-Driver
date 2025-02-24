@@ -17,11 +17,14 @@ extern "C" {
 
 #include <CSP_Config.h>
 
+/* Use FDCAN or bxCAN2.0. Determined by the chip. */
+#define CAN_LIST_USE_FDCAN      0
+
 #define CAN_LIST_MAX_CAN_NUMBER 3
 
-#define CAN_LIST_MALLOC         malloc
-#define CAN_LIST_CALLOC         calloc
-#define CAN_LIST_FREE           free
+#define CAN_LIST_MALLOC(p)      malloc(p)
+#define CAN_LIST_CALLOC(x, p)   calloc(x, p)
+#define CAN_LIST_FREE(p)        free(p)
 
 /**
  * When disabled, the message is processed in the interrupt.
@@ -42,6 +45,9 @@ extern "C" {
 #define CAN_LIST_QUEUE_LENGTH  5
 #endif /* CAN_LIST_USE_RTOS */
 
+/**
+ * @brief Message header type. Compatibility with FDCAN.
+ */
 typedef struct {
     uint32_t id;         /*!< Message ID.                                     */
     uint32_t id_type;    /*!< ID type, `CAN_ID_STD` or `CAN_ID_EXT`.          */
@@ -59,17 +65,6 @@ typedef struct {
 typedef void (*can_callback_t)(void * /* node_obj */,
                                can_rx_header_t * /* can_rx_header */,
                                uint8_t * /* can_msg */);
-
-/**
- * @brief CAN list node type.
- */
-typedef struct can_node {
-    void *can_data;          /*!< The CAN data of this node.    */
-    uint32_t id;             /*!< CAN ID.                       */
-    uint32_t id_mask;        /*!< CAN ID mask.                  */
-    can_callback_t callback; /*!< CAN callback function.        */
-    struct can_node *next;   /*!< Next CAN list node.           */
-} can_node_t;
 
 uint8_t can_list_add_can(can_selected_t can_select, uint32_t std_len,
                          uint32_t ext_len);

@@ -26,8 +26,12 @@ void can_list_polling_task(void *args);
  * @brief Queue message data type.
  */
 typedef struct {
-    CAN_HandleTypeDef *hcan; /*!< The handle of CAN.       */
-    uint32_t rx_fifo;        /*!< The FIFO which received. */
+#if CAN_LIST_USE_FDCAN
+    FDCAN_HandleTypeDef *hcan; /*!< The handle of FDCAN.     */
+#else                          /* CAN_LIST_USE_FDCAN */
+    CAN_HandleTypeDef *hcan; /*!< The handle of CAN.         */
+#endif                         /* CAN_LIST_USE_FDCAN */
+    uint32_t rx_fifo;          /*!< The FIFO which received. */
 } queue_msg_t;
 
 static queue_msg_t send_msg_from_isr;
@@ -38,6 +42,17 @@ static queue_msg_t send_msg_from_isr;
  * @defgroup Private type and variables.
  * @{
  */
+
+/**
+ * @brief CAN list node type.
+ */
+typedef struct can_node {
+    void *can_data;          /*!< The CAN data of this node.    */
+    uint32_t id;             /*!< CAN ID.                       */
+    uint32_t id_mask;        /*!< CAN ID mask.                  */
+    can_callback_t callback; /*!< CAN callback function.        */
+    struct can_node *next;   /*!< Next CAN list node.           */
+} can_node_t;
 
 /**
  * @brief CAN hash table.
@@ -330,11 +345,18 @@ uint8_t can_list_change_callback(can_selected_t can_select, uint32_t id_type,
  */
 void can_list_polling_task(void *args) {
     UNUSED(args);
-
+#if CAN_LIST_USE_FDCAN
+    /* The rx header read from the CAN. */
+    static FDCAN_RxHeaderTypeDef rx_header;
+    /* The rx data read from the CAN. */
+    static uint8_t rx_data[64];
+#else  /* CAN_LIST_USE_FDCAN */
     /* The rx header read from the CAN. */
     static CAN_RxHeaderTypeDef rx_header;
     /* The rx data read from the CAN. */
     static uint8_t rx_data[8];
+#endif /* CAN_LIST_USE_FDCAN */
+
     /* The rx header to callback function. */
     static can_rx_header_t call_rx_header;
 
@@ -349,6 +371,58 @@ void can_list_polling_task(void *args) {
     while (1) {
         xQueueReceive(can_list_queue_handle, &recv_msg, portMAX_DELAY);
 
+#if CAN_LIST_USE_FDCAN
+
+        switch ((uintptr_t)(recv_msg.hcan->Instance)) {
+#if FDCAN1_ENABLE
+            case FDCAN1_BASE: {
+                can_received = can1_selected;
+            } break;
+#endif /* FDCAN1_ENABLE */
+
+#if FDCAN2_ENABLE
+            case FDCAN2_BASE: {
+                can_received = can2_selected;
+            } break;
+#endif /* FDCAN2_ENABLE */
+
+#if FDCAN3_ENABLE
+            case FDCAN3_BASE: {
+                can_received = can3_selected;
+            } break;
+#endif /* FDCAN3_ENABLE */
+
+            default:
+                continue;
+        }
+
+        if (HAL_FDCAN_GetRxMessage(recv_msg.hcan, recv_msg.rx_fifo, &rx_header,
+                                   rx_data) != HAL_OK) {
+            continue;
+        }
+
+        if (rx_header.IdType == FDCAN_STANDARD_ID) {
+            table = &can_table[can_received]->id_table[STD_ID_TABLE];
+        } else {
+            table = &can_table[can_received]->id_table[EXT_ID_TABLE];
+        }
+        id = rx_header.Identifier;
+
+        node = table->table[id % table->len];
+
+        while ((node != NULL) && (node->id) != (id & node->id_mask)) {
+            node = node->next;
+        }
+
+        if (node == NULL || node->callback == NULL) {
+            continue;
+        }
+
+        call_rx_header.id_type = rx_header.IdType;
+        call_rx_header.frame_type = rx_header.RxFrameType;
+        call_rx_header.data_length = rx_header.DataLength;
+
+#else /* CAN_LIST_USE_FDCAN */
         switch ((uintptr_t)(recv_msg.hcan->Instance)) {
 #if CAN1_ENABLE
             case CAN1_BASE: {
@@ -393,6 +467,7 @@ void can_list_polling_task(void *args) {
             table = &can_table[can_received]->id_table[EXT_ID_TABLE];
             id = rx_header.ExtId;
         }
+
         node = table->table[id % table->len];
 
         while ((node != NULL) && (node->id) != (id & node->id_mask)) {
@@ -403,16 +478,31 @@ void can_list_polling_task(void *args) {
             continue;
         }
 
-        call_rx_header.id = id;
         call_rx_header.id_type = rx_header.IDE;
         call_rx_header.frame_type = rx_header.RTR;
         call_rx_header.data_length = rx_header.DLC;
+
+#endif /* CAN_LIST_USE_FDCAN */
+
+        call_rx_header.id = id;
 
         node->callback(node->can_data, &call_rx_header, rx_data);
     }
 }
 
 #else /* CAN_LIST_USE_RTOS */
+
+#if CAN_LIST_USE_FDCAN
+
+/**
+ * @brief Process the can message and call the function by FDCAN ID.
+ *
+ * @param hcan The handle of FDCAN.
+ * @param rx_fifo Specific which FIFO will read.
+ */
+static void can_message_process(FDCAN_HandleTypeDef *hcan, uint32_t rx_fifo) {
+
+#else /* CAN_LIST_USE_FDCAN */
 
 /**
  * @brief Process the can message and call the function by CAN ID.
@@ -422,7 +512,36 @@ void can_list_polling_task(void *args) {
  */
 static void can_message_process(CAN_HandleTypeDef *hcan, uint32_t rx_fifo) {
 
+#endif /* CAN_LIST_USE_FDCAN */
+
     uint8_t can_received = CAN_LIST_MAX_CAN_NUMBER;
+
+#if CAN_LIST_USE_FDCAN
+
+    switch ((uintptr_t)(hcan->Instance)) {
+#if FDCAN1_ENABLE
+        case FDCAN1_BASE: {
+            can_received = can1_selected;
+        } break;
+#endif /* FDCAN1_ENABLE */
+
+#if FDCAN2_ENABLE
+        case FDCAN2_BASE: {
+            can_received = can2_selected;
+        } break;
+#endif /* FDCAN2_ENABLE */
+
+#if FDCAN3_ENABLE
+        case FDCAN3_BASE: {
+            can_received = can3_selected;
+        } break;
+#endif /* FDCAN3_ENABLE */
+
+        default:
+            return;
+    }
+
+#else /* CAN_LIST_USE_FDCAN */
 
     /* Specific which CAN had received message. */
     switch ((uintptr_t)(hcan->Instance)) {
@@ -448,19 +567,40 @@ static void can_message_process(CAN_HandleTypeDef *hcan, uint32_t rx_fifo) {
             return;
     }
 
-    /* The rx header read from the CAN. */
-    static CAN_RxHeaderTypeDef rx_header;
-    /* The rx data read from the CAN. */
-    static uint8_t rx_data[8];
+#endif /* CAN_LIST_USE_FDCAN */
+
     /* The rx header to callback function. */
     static can_rx_header_t call_rx_header;
-    if (HAL_CAN_GetRxMessage(hcan, rx_fifo, &rx_header, rx_data) != HAL_OK) {
-        return;
-    }
 
     /* Specific hash table will search. */
     uint32_t id;
     hash_table_t *table;
+
+#if CAN_LIST_USE_FDCAN
+    /* The rx header read from the CAN. */
+    static FDCAN_RxHeaderTypeDef rx_header;
+    /* The rx data read from the CAN. */
+    static uint8_t rx_data[64];
+    if (HAL_FDCAN_GetRxMessage(hcan, rx_fifo, &rx_header, rx_data) != HAL_OK) {
+        return;
+    }
+
+    if (rx_header.IdType == FDCAN_STANDARD_ID) {
+        table = &can_table[can_received]->id_table[STD_ID_TABLE];
+
+    } else {
+        table = &can_table[can_received]->id_table[EXT_ID_TABLE];
+    }
+    id = rx_header.Identifier;
+#else  /* CAN_LIST_USE_FDCAN */
+    /* The rx header read from the CAN. */
+    static CAN_RxHeaderTypeDef rx_header;
+    /* The rx data read from the CAN. */
+    static uint8_t rx_data[8];
+    if (HAL_CAN_GetRxMessage(hcan, rx_fifo, &rx_header, rx_data) != HAL_OK) {
+        return;
+    }
+
     if (rx_header.IDE == CAN_ID_STD) {
         table = &can_table[can_received]->id_table[STD_ID_TABLE];
         id = rx_header.StdId;
@@ -468,6 +608,8 @@ static void can_message_process(CAN_HandleTypeDef *hcan, uint32_t rx_fifo) {
         table = &can_table[can_received]->id_table[EXT_ID_TABLE];
         id = rx_header.ExtId;
     }
+#endif /* CAN_LIST_USE_FDCAN */
+
     can_node_t *node = table->table[id % table->len];
 
     while ((node != NULL) && (node->id) != (id & node->id_mask)) {
@@ -479,9 +621,16 @@ static void can_message_process(CAN_HandleTypeDef *hcan, uint32_t rx_fifo) {
     }
 
     call_rx_header.id = id;
+
+#if CAN_LIST_USE_FDCAN
+    call_rx_header.id_type = rx_header.IdType;
+    call_rx_header.frame_type = rx_header.RxFrameType;
+    call_rx_header.data_length = rx_header.DataLength;
+#else  /* CAN_LIST_USE_FDCAN */
     call_rx_header.id_type = rx_header.IDE;
     call_rx_header.frame_type = rx_header.RTR;
     call_rx_header.data_length = rx_header.DLC;
+#endif /* CAN_LIST_USE_FDCAN */
 
     node->callback(node->can_data, &call_rx_header, rx_data);
 }
@@ -497,6 +646,62 @@ static void can_message_process(CAN_HandleTypeDef *hcan, uint32_t rx_fifo) {
  * @{
  */
 
+#if CAN_LIST_USE_FDCAN
+
+/**
+ * @brief Rx FIFO 0 callback.
+ * 
+ * @param hfdcan pointer to an FDCAN_HandleTypeDef structure that contains
+ *        the configuration information for the specified FDCAN.
+ * @param RxFifo0ITs indicates which Rx FIFO 0 interrupts are signaled.
+ *        This parameter can be any combination of @arg FDCAN_Rx_Fifo0_Interrupts.
+ */
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan,
+                               uint32_t RxFifo0ITs) {
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) == RESET) {
+        return;
+    }
+
+#if CAN_LIST_USE_RTOS
+    if (can_list_queue_handle == NULL) {
+        return;
+    }
+
+    send_msg_from_isr.hcan = hfdcan;
+    send_msg_from_isr.rx_fifo = FDCAN_RX_FIFO0;
+    xQueueSendFromISR(can_list_queue_handle, &send_msg_from_isr, NULL);
+#else  /* CAN_LIST_USE_RTOS */
+    can_message_process(hfdcan, FDCAN_RX_FIFO0);
+#endif /* CAN_LIST_USE_RTOS */
+}
+/**
+ * @brief Rx FIFO 1 callback.
+ *
+ * @param hfdcan pointer to an FDCAN_HandleTypeDef structure that contains
+ *        the configuration information for the specified FDCAN.
+ * @param RxFifo1ITs indicates which Rx FIFO 1 interrupts are signaled.
+ *        This parameter can be any combination of @arg FDCAN_Rx_Fifo1_Interrupts.
+ */
+void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan,
+                               uint32_t RxFifo1ITs) {
+    if ((RxFifo1ITs & FDCAN_IT_RX_FIFO1_NEW_MESSAGE) == RESET) {
+        return;
+    }
+
+#if CAN_LIST_USE_RTOS
+    if (can_list_queue_handle == NULL) {
+        return;
+    }
+
+    send_msg_from_isr.hcan = hfdcan;
+    send_msg_from_isr.rx_fifo = FDCAN_RX_FIFO1;
+    xQueueSendFromISR(can_list_queue_handle, &send_msg_from_isr, NULL);
+#else  /* CAN_LIST_USE_RTOS */
+    can_message_process(hfdcan, FDCAN_RX_FIFO1);
+#endif /* CAN_LIST_USE_RTOS */
+}
+
+#else /* CAN_LIST_USE_FDCAN */
 /**
  * @brief Rx FIFO 0 message pending callback.
  *
@@ -536,6 +741,8 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     can_message_process(hcan, CAN_RX_FIFO1);
 #endif /* CAN_LIST_USE_RTOS */
 }
+
+#endif /* CAN_LIST_USE_RTOS */
 
 /**
  * @}
