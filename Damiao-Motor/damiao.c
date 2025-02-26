@@ -8,8 +8,8 @@
 
 #include "damiao.h"
 
-#include "buffer_append.h"
-#include "can_list.h"
+#include "buffer_append/buffer_append.h"
+#include "can_list/can_list.h"
 
 #include <string.h>
 

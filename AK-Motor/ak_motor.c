@@ -9,8 +9,8 @@
 
 #include "ak_motor.h"
 
-#include "buffer_append.h"
-#include "can_list.h"
+#include "buffer_append/buffer_append.h"
+#include "can_list/can_list.h"
 
 /******************************************************************************
  * @defgroup 伺服模式驱动

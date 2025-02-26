@@ -6,7 +6,7 @@
  * @date    2024-11-24
  */
 
-#include "can_list.h"
+#include "can_list/can_list.h"
 
 #include <stdlib.h>
 

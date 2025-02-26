@@ -4,12 +4,11 @@
  * @brief   M3508, M2006 直流无刷电机驱动
  * @version 1.5
  * @date    2024-03-02
- * @note    支持两个 CAN 通信，两个 CAN 可以设置 ID 一致的电机，完全独立不影响
  */
 
 #include "dji_bldc_motor.h"
 
-#include "can_list.h"
+#include "can_list/can_list.h"
 
 /**
  * @brief CAN 收到消息中断回调
