@@ -20,6 +20,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 void buffer_append_int16(uint8_t *buffer, int16_t number, int32_t *index);
 void buffer_append_uint16(uint8_t *buffer, uint16_t number, int32_t *index);
 void buffer_append_int32(uint8_t *buffer, int32_t number, int32_t *index);
@@ -46,4 +50,10 @@ float buffer_get_float32_auto(const uint8_t *buffer, int32_t *index);
 
 int float_to_uint(float x, float x_min, float x_max, uint8_t bits);
 float uint_to_float(int x_int, float x_min, float x_max, uint8_t bits);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+
 #endif /* __BUFFER_APPEND_H */

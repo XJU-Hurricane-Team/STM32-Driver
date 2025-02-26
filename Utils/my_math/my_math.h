@@ -14,6 +14,10 @@
 #ifndef __MY_MATH_H
 #define __MY_MATH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #define my_abs(X)    ((X) >= 0 ? (X) : (-(X)))
 #define my_fabs(X)   ((X) >= 0.0f ? (X) : (-(X)))
 #define my_max(X, Y) ((X) >= (Y) ? (X) : (Y))
@@ -41,5 +45,9 @@ fp_compare_result_t math_compare_float(float x, float y);
 fp_compare_result_t math_compare_double(double x, double y);
 
 float triangle_cosine_law(float a, float b, float c);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* __MY_MATH_H */

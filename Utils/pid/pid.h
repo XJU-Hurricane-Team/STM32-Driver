@@ -17,6 +17,10 @@
 #ifndef __PID_H
 #define __PID_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* 是否使用增量式 PID */
 #define PID_USE_DELTA_PID 1
 
@@ -65,5 +69,9 @@ void pid_init(pid_t *pid, float maxout_p, float integral_limit_p,
               float kp_p, float ki_p, float kd_p);
 void pid_reset(pid_t *pid, float kp_p, float ki_p, float kd_p);
 float pid_calc(pid_t *pid, float target_p, float measure_p);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* __PID_H */
