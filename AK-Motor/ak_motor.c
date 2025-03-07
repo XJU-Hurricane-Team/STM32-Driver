@@ -96,9 +96,9 @@ static void ak_can_callback(void *can_ptr, can_rx_header_t *can_rx_header,
 
     } else if (can_rx_header->id_type == CAN_ID_STD) {
         /* 标准帧，运控模式 */
-        int16_t pos_int = (recv_msg[1] << 8) | recv_msg[2];
-        int16_t spd_int = (recv_msg[3] << 4) | (recv_msg[4] >> 4);
-        int16_t torq_int = ((recv_msg[4] * 0xF) << 8) | recv_msg[5];
+        uint16_t pos_int = (recv_msg[1] << 8) | recv_msg[2];
+        uint16_t spd_int = (recv_msg[3] << 4) | (recv_msg[4] >> 4);
+        uint16_t torq_int = ((recv_msg[4] & 0xF) << 8) | recv_msg[5];
 
         ak_target->pos = uint_to_float(pos_int, -AK_MIT_POSITION_LIMIT,
                                        AK_MIT_POSITION_LIMIT, 16);
