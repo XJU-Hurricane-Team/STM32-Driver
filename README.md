@@ -16,3 +16,4 @@
 | AK-Motor  | CubeMars AK 系列电机                                        | 是       |
 | DJI-Motor | 大疆 M3508/2006/GM6020                                      | 是       |
 | VESC      | vesc 电调                                                   | 是       |
+| MLDS      | 铭朗科技 伺服电机                                             | 否       |
