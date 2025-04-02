@@ -20,8 +20,7 @@
 
 - `CAN_LIST_USE_FDCAN`宏用于确定是否使用 FDCAN，STM32 HAL 库的 bxCAN 与 FDCAN 互不兼容！但是本模块代码是两者都兼容的。当芯片外设为 FDCAN 下使用！
 - `CAN_LIST_MAX_CAN_NUMBER`宏用于确定当前设备最大支持的 CAN 外设数量，防止缓冲区溢出
-- `CAN_LIST_USE_RTOS`宏用于确定是否使用操作系统任务来处理 CAN 消息，当使用操作系统后会创建一个线程来处理收到的 CAN 消息以加快中断退出时间，**启用后需要注意 CAN 中断的优先级不能高于 FreeRTOS 可管理的优先级！**
-
+- `CAN_LIST_USE_RTOS`宏用于确定是否使用操作系统任务来处理 CAN 消息，当使用操作系统后会创建一个线程来处理收到的 CAN 消息以加快中断退出时间，**启用后需要注意 CAN 中断的优先级不能高于 FreeRTOS 可管理的优先级！** 启用后，使用`can_list_add_can`时，一定要在`vTaskStartScheduler()`后使用！
 - `can_list_add_can` 添加一个 CAN：
   - `can_select`添加那一个 CAN
   - `std_len` 标准 ID 哈希表键值，根据 ID 合理设置以减少查表时间（设置为 1 退化为链表）。并非设备数量限制！
