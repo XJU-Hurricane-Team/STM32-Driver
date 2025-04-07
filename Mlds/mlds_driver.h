@@ -69,19 +69,19 @@ typedef enum {
 typedef struct {
     uint8_t id;
     can_selected_t can_selected;
-} mlds_motor_handle_t;
+} mlds_motor_handle_t *;
 
-void mlds_set_mode(mlds_motor_handle_t motor, uint32_t mode);
+void mlds_set_mode(mlds_motor_handle_t * motor, uint32_t mode);
 
-void mlds_run_speed(mlds_motor_handle_t motor, int32_t speed);
-void mlds_get_average_speed(mlds_motor_handle_t motor);
+void mlds_run_speed(mlds_motor_handle_t * motor, int32_t speed);
+void mlds_get_average_speed(mlds_motor_handle_t * motor);
 
-void mlds_set_absolute_origin(mlds_motor_handle_t motor);
-void mlds_run_absolute_angle(mlds_motor_handle_t motor, float angle);
-void mlds_run_relative_angle(mlds_motor_handle_t motor, float angle);
-void mlds_set_speed_pid(mlds_motor_handle_t motor, mlds_set_pid_t set_item,
+void mlds_set_absolute_origin(mlds_motor_handle_t * motor);
+void mlds_run_absolute_angle(mlds_motor_handle_t * motor, float angle);
+void mlds_run_relative_angle(mlds_motor_handle_t * motor, float angle);
+void mlds_set_speed_pid(mlds_motor_handle_t * motor, mlds_set_pid_t set_item,
                         int16_t set_value);
-void mlds_set_angle_pid(mlds_motor_handle_t motor, mlds_set_pid_t set_item,
+void mlds_set_angle_pid(mlds_motor_handle_t * motor, mlds_set_pid_t set_item,
                         int16_t set_value);
 
 #endif /* __MLDS_DRIVER_H */
