@@ -17,4 +17,5 @@
 | DJI-Motor | 大疆 M3508/2006/GM6020                                      | 是       |
 | VESC      | vesc 电调                                                   | 是       |
 | MLDS      | 铭朗科技 伺服电机                                             | 否       |
-| Myantenna-L1 | 激光测距模块代码                                          | 见readme |
+| Myantenna-L1 | 激光测距模块代码                                          | 见 readme |
+| N300      | 轮趣科技 12轴高精度IMU                                        | 是     |
