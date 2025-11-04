@@ -16,6 +16,12 @@
 | AK-Motor  | CubeMars AK 系列电机                                        | 是       |
 | DJI-Motor | 大疆 M3508/2006/GM6020                                      | 是       |
 | VESC      | vesc 电调                                                   | 是       |
+| step_motor | 定时器PWM驱动步进电机驱动代码 | 是 |
 | MLDS      | 铭朗科技 伺服电机                                             | 否       |
 | Myantenna-L1 | 激光测距模块代码                                          | 见 readme |
 | N300      | 轮趣科技 12轴高精度IMU                                        | 是     |
+| DT35 | 4mA~20mA距离传感器 | 是 |
+| w25qxx | NOR Flash芯片驱动 | 否 |
+| at24cxx | eeprom芯片驱动 | 否 |
+| as5047 | 16位spi接口磁编码器 | 否 |
+| oled | 支持0.91，0.96，1.3寸spi或iic接口的oled驱动 | 是 |
