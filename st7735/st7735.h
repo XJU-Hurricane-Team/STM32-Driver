@@ -14,12 +14,17 @@
 
 #include "bsp.h"
 
-
 typedef struct {
     const uint8_t width;
     const uint8_t height;
     const uint32_t *data;
 } FontDef;
+
+typedef struct {
+    uint16_t width;  /* 屏幕的宽度，随显示方向改变 */
+    uint16_t height; /* 屏幕的高度，随显示方向改变 */
+    uint8_t dir;     /* 显示的方向，取值0~3，对应屏幕逆时针旋转0°~270° */
+} lcd_dev_t;
 
 extern const FontDef Font_7x10;
 extern const FontDef Font_11x18;
@@ -40,27 +45,29 @@ extern const FontDef Font_Custom;
 /* 显示设置 */
 #define ST7735_XSTART        0 /*!<显示区域设置 */
 #define ST7735_YSTART        0
-#define ST7735_WIDTH         130
-#define ST7735_HEIGHT        162
+#define ST7735_WIDTH         130 /* 横向分辨率 */
+#define ST7735_HEIGHT        162 /* 纵向分辨率 */
+#define ST7735_MAX_WIDTH                                                       \
+    ((ST7735_WIDTH) > (ST7735_HEIGHT) ? (ST7735_WIDTH) : (ST7735_HEIGHT))
 
-#define ST7735_ROTATION      0 /*!<屏幕显示方式*/
+#define ST7735_ROTATION    1 /*!<屏幕显示方式*/
 
-#define ST7735_MADCTL_RGB    0x00 /*!<Color Mode: RGB or BGR */
-#define ST7735_MADCTL_BGR    0x08
-#define ST7735_MADCTL_MODE   ST7735_MADCTL_RGB
+#define ST7735_MADCTL_RGB  0x00 /*!<Color Mode: RGB or BGR */
+#define ST7735_MADCTL_BGR  0x08
+#define ST7735_MADCTL_MODE ST7735_MADCTL_RGB
 
-#define ST7735_INVERSE       0 /*!< Color Inverse: 0=NO, 1=YES */
+#define ST7735_INVERSE     0 /*!< Color Inverse: 0=NO, 1=YES */
 
 /*************************************************************************************************/
 /* 颜色定义 */
-#define ST7735_BLACK         0x0000
-#define ST7735_BLUE          0x001F
-#define ST7735_RED           0xF800
-#define ST7735_GREEN         0x07E0
-#define ST7735_CYAN          0x07FF
-#define ST7735_MAGENTA       0xF81F
-#define ST7735_YELLOW        0xFFE0
-#define ST7735_WHITE         0xFFFF
+#define ST7735_BLACK       0x0000
+#define ST7735_BLUE        0x001F
+#define ST7735_RED         0xF800
+#define ST7735_GREEN       0x07E0
+#define ST7735_CYAN        0x07FF
+#define ST7735_MAGENTA     0xF81F
+#define ST7735_YELLOW      0xFFE0
+#define ST7735_WHITE       0xFFFF
 #define ST7735_COLOR565(r, g, b)                                               \
     (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
 
@@ -93,7 +100,7 @@ extern const FontDef Font_Custom;
 #define ST7735_MADCTL_MV 0x20
 /*************************************************************************************************/
 /* 函数声明 */
-void ST7735_Init(void);
+void ST7735_Init(uint8_t dir);
 void ST7735_DrawRectangle(uint16_t x, uint16_t y, uint16_t width,
                           uint16_t height, uint16_t color);
 void ST7735_DrawString(uint16_t x, uint16_t y, const char *str, uint16_t color,

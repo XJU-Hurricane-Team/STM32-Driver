@@ -13,12 +13,13 @@
 #include "font.h"
 #include "../core/core_delay.h"
 
+lcd_dev_t lcd_dev;
 
 void ST7735_Reset(void) {
     HAL_GPIO_WritePin(ST7735_RST_GPIO_Port, ST7735_RST_Pin, GPIO_PIN_RESET);
-   delay_ms(100);
+    delay_ms(100);
     HAL_GPIO_WritePin(ST7735_RST_GPIO_Port, ST7735_RST_Pin, GPIO_PIN_SET);
-   delay_ms(100);
+    delay_ms(100);
 }
 
 void ST7735_WriteCommand(uint8_t cmd) {
@@ -48,31 +49,38 @@ void ST7735_SetRotation(uint8_t rotation) {
     switch (rotation) {
         case 0:
             madctl = ST7735_MADCTL_MX | ST7735_MADCTL_MY | ST7735_MADCTL_MODE;
+            lcd_dev.width = ST7735_WIDTH;
+            lcd_dev.height = ST7735_HEIGHT;
             break;
         case 1:
             madctl = ST7735_MADCTL_MY | ST7735_MADCTL_MV | ST7735_MADCTL_MODE;
+            lcd_dev.width = ST7735_HEIGHT;
+            lcd_dev.height = ST7735_WIDTH;
             break;
         case 2:
             madctl = ST7735_MADCTL_MODE;
+            lcd_dev.width = ST7735_WIDTH;
+            lcd_dev.height = ST7735_HEIGHT;
             break;
         case 3:
             madctl = ST7735_MADCTL_MX | ST7735_MADCTL_MV | ST7735_MADCTL_MODE;
+            lcd_dev.width = ST7735_HEIGHT;
+            lcd_dev.height = ST7735_WIDTH;
             break;
         default:
-        break;
+            break;
     }
 
     ST7735_WriteCommand(ST7735_MADCTL);
     ST7735_WriteByte(madctl);
 }
 
-
 /**
  * @brief ST7735屏幕初始化函数
  * @note 初始化之前请先初始化使用的SPI，模式：SPI_MODE_MASTER, SPI_CLK_MODE0, SPI_DATASIZE_8BIT, SPI_FIRSTBIT_MSB
  * 
  */
-void ST7735_Init(void) {
+void ST7735_Init(uint8_t dir) {
     /* IO初始化 */
     GPIO_InitTypeDef gpio_init = {.Mode = GPIO_MODE_OUTPUT_PP,
                                   .Speed = GPIO_SPEED_FREQ_HIGH,
@@ -80,6 +88,8 @@ void ST7735_Init(void) {
                                   .Pin = ST7735_RST_Pin | ST7735_DC_Pin |
                                          ST7735_CS_Pin};
     HAL_GPIO_Init(ST7735_RST_GPIO_Port, &gpio_init);
+
+    lcd_dev.dir = dir;
 
     /* 屏幕初始化 */
     ST7735_Reset();
@@ -171,7 +181,7 @@ void ST7735_Init(void) {
     ST7735_WriteCommand(ST7735_DISPON);
     delay_ms(10);
 
-    ST7735_SetRotation(ST7735_ROTATION);
+    ST7735_SetRotation(lcd_dev.dir);
     ST7735_FillScreen(ST7735_BLACK);
 }
 
@@ -194,7 +204,10 @@ void ST7735_SetAddressWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
 
 void ST7735_DrawRectangle(uint16_t x, uint16_t y, uint16_t width,
                           uint16_t height, uint16_t color) {
-    static uint8_t buff[ST7735_WIDTH * 2];
+    if ((width + x > lcd_dev.width) ||(height + y > lcd_dev.height)) {
+        return;
+    }
+    static uint8_t buff[ST7735_MAX_WIDTH * 2];
     uint16_t i = 0;
 
     for (i = 0; i < width; i++) {
@@ -236,12 +249,12 @@ void ST7735_DrawChar(uint16_t x, uint16_t y, char c, uint16_t color,
 void ST7735_DrawString(uint16_t x, uint16_t y, const char *str, uint16_t color,
                        uint16_t bgColor, const FontDef *font) {
     while (*str) {
-        if (x + font->width > ST7735_WIDTH) {
+        if (x + font->width > lcd_dev.width) {
             x = 0;
             y += font->height;
         }
 
-        if (y + font->height > ST7735_HEIGHT) {
+        if (y + font->height > lcd_dev.height) {
             break;
         }
 
@@ -252,7 +265,7 @@ void ST7735_DrawString(uint16_t x, uint16_t y, const char *str, uint16_t color,
 }
 
 void ST7735_FillScreen(uint16_t color) {
-    ST7735_DrawRectangle(0, 0, ST7735_WIDTH, ST7735_HEIGHT, color);
+    ST7735_DrawRectangle(0, 0, lcd_dev.width, lcd_dev.height, color);
 }
 
 void ST7735_DrawImage(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
