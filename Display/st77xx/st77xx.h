@@ -54,8 +54,8 @@ extern const FontDef Font_Custom;
 
 #define ST77xx_XSTART        0 /*!<显示区域设置 */
 #define ST77xx_YSTART        0
-#define ST77xx_WIDTH         130 /* 横向分辨率 */
-#define ST77xx_HEIGHT        162 /* 纵向分辨率 */
+#define ST77xx_WIDTH         240 /* 横向分辨率 */
+#define ST77xx_HEIGHT        340 /* 纵向分辨率 */
 #define ST77xx_MAX_WIDTH                                                       \
     ((ST77xx_WIDTH) > (ST77xx_HEIGHT) ? (ST77xx_WIDTH) : (ST77xx_HEIGHT))
 

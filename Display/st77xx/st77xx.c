@@ -15,11 +15,6 @@
 #include "stm32g4xx_ll_gpio.h"
 
 lcd_dev_t lcd_dev;
-void ST77xx_SetSPISpeed(uint32_t prescaler) {
-    HAL_SPI_DeInit(&ST77xx_SPI_INSTANCE);
-    ST77xx_SPI_INSTANCE.Init.BaudRatePrescaler = prescaler;
-    HAL_SPI_Init(&ST77xx_SPI_INSTANCE);
-}
 
 void ST77xx_Reset(void) {
 
@@ -58,7 +53,7 @@ void ST77xx_SetRotation(uint8_t rotation) {
             break;
         case 1:
             madctl = ST7735_MADCTL_MY | ST7735_MADCTL_MV |
-                     ST77xx_MADCTL_MODE; /*!< 0X0A */
+                     ST77xx_MADCTL_MODE; /*!< 0XA0 */
             lcd_dev.width = ST77xx_HEIGHT;
             lcd_dev.height = ST77xx_WIDTH;
             break;
@@ -197,6 +192,7 @@ void ST77xx_Init(uint8_t dir, ic_type_t st77xx) {
         ST77xx_SetRotation(lcd_dev.dir);
         ST77xx_FillScreen(ST77xx_WHITE);
     } else if (lcd_dev.id == ST7789) {
+        ST77xx_Reset();
         ST77xx_WriteCommand(ST7789_SLPOUT);
         delay_ms(120);
         ST77xx_SetRotation(lcd_dev.dir);
@@ -256,7 +252,7 @@ void ST77xx_Init(uint8_t dir, ic_type_t st77xx) {
         ST77xx_WriteCommand(ST7789_INVON);
         ST77xx_WriteCommand(ST7789_DISPON);
         delay_ms(10);
-        ST77xx_FillScreen(ST77xx_BLACK);
+        ST77xx_FillScreen(ST77xx_WHITE);
     }
 }
 
@@ -277,12 +273,14 @@ void ST77xx_SetAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1,
     y1 += ST77xx_YSTART;
 
     ST77xx_WriteCommand(ST7735_CASET);
-    uint8_t data[] = {0x00, x0, 0x00, x1};
+    uint8_t data[] = {x0>>8, x0&0x00FF, x1>>8, x1&0x00FF};
     ST77xx_WriteData(data, sizeof(data));
-
+                
     ST77xx_WriteCommand(ST7735_RASET);
-    data[1] = y0;
-    data[3] = y1;
+    data[0] = y0>>8;
+    data[1] = y0&0x00FF;
+    data[2] = y1>>8;
+    data[3] = y1&0x00FF;
     ST77xx_WriteData(data, sizeof(data));
 }
 
