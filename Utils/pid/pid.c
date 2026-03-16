@@ -97,13 +97,17 @@ float pid_calc(pid_t *pid, float target_p, float measure_p) {
 
     pid->err[NOW] = target_p - measure_p;
 
-    if (fabsf(pid->err[NOW]) > pid->max_error) {
-        return 0.0f;
+
+    if (pid->err[NOW] > pid->max_error) {
+        pid->err[NOW] = pid->max_error; 
+    } else if (pid->err[NOW] < -pid->max_error) {
+        pid->err[NOW] = -pid->max_error; 
     }
 
     if (fabsf(pid->err[NOW]) < pid->deadband) {
-        return 0.0f;
+        pid->err[NOW] = 0.0f; 
     }
+    
 #if PID_USE_DELTA_PID
     if (pid->pid_mode == POSITION_PID) {
 #endif /* PID_USE_DELTA_PID */
