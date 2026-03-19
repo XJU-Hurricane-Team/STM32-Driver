@@ -83,7 +83,7 @@ uint8_t spican_list_del_node_by_id(spican_selected_t spican_select, uint32_t id_
                                 uint32_t id);
 uint8_t spican_list_change_callback(spican_selected_t spican_select, uint32_t id_type,
                                  uint32_t id, spican_callback_t new_callback); 
-void mcp2515_process_msg(MCP2515_DevId dev_id);                       
+void mcp2515_process_msg(MCP2515_DevId_t dev_id);                       
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

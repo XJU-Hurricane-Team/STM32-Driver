@@ -28,7 +28,7 @@ id_reg_t idReg;
  *
  * @param dev_id MCP2515 设备 ID。
  */
-void CANSPI_Sleep_Ext(MCP2515_DevId dev_id)
+void CANSPI_Sleep_Ext(MCP2515_DevId_t dev_id)
 {
   /* Clear CAN bus wakeup interrupt */
   MCP2515_BitModify_Ext(dev_id, MCP2515_CANINTF, 0x40, 0x00);        
@@ -49,7 +49,7 @@ void CANSPI_Sleep_Ext(MCP2515_DevId dev_id)
  * @param dev_id MCP2515 设备 ID。
  * @return 初始化成功返回 true，否则返回 false。
  */
-bool CANSPI_Initialize_Ext(MCP2515_DevId dev_id)
+bool CANSPI_Initialize_Ext(MCP2515_DevId_t dev_id)
 {
   RXF0 RXF0reg;
   RXF1 RXF1reg;
@@ -141,7 +141,6 @@ bool CANSPI_Initialize_Ext(MCP2515_DevId dev_id)
   return true;
 }
 
-/* Transmit CAN message */
 /**
  * @brief 通过 MCP2515 发送一条 CAN 消息。
  *
@@ -153,7 +152,7 @@ bool CANSPI_Initialize_Ext(MCP2515_DevId dev_id)
  * @param tempCanMsg 指向要发送的 CAN 消息结构。
  * @return 发送请求是否成功（1 成功，0 失败）。
  */
-uint8_t CANSPI_Transmit_Ext(MCP2515_DevId dev_id, uCAN_MSG *tempCanMsg) 
+uint8_t CANSPI_Transmit_Ext(MCP2515_DevId_t dev_id, uCAN_MSG *tempCanMsg) 
 {
     uint8_t returnValue = 0;
     id_reg_t idReg = {0}; 
@@ -193,7 +192,6 @@ uint8_t CANSPI_Transmit_Ext(MCP2515_DevId dev_id, uCAN_MSG *tempCanMsg)
     return returnValue;
 }
 
-/* Receive CAN message */
 /**
  * @brief 从 MCP2515 接收一条 CAN 消息。
  *
@@ -206,7 +204,7 @@ uint8_t CANSPI_Transmit_Ext(MCP2515_DevId dev_id, uCAN_MSG *tempCanMsg)
  * @param tempCanMsg 输出接收消息的结构体指针。
  * @return 是否成功接收到一条消息（1 成功，0 无消息或错误）。
  */
-uint8_t CANSPI_Receive_Ext(MCP2515_DevId dev_id, uCAN_MSG *tempCanMsg) 
+uint8_t CANSPI_Receive_Ext(MCP2515_DevId_t dev_id, uCAN_MSG *tempCanMsg) 
 {
   uint8_t returnValue = 0;
   rx_reg_t rxReg = {0}; 
@@ -268,7 +266,7 @@ uint8_t CANSPI_Receive_Ext(MCP2515_DevId dev_id, uCAN_MSG *tempCanMsg)
  * @param dev_id MCP2515 设备 ID。
  * @return 缓冲区中消息数量（0~2）。
  */
-uint8_t CANSPI_messagesInBuffer_Ext(MCP2515_DevId dev_id)
+uint8_t CANSPI_messagesInBuffer_Ext(MCP2515_DevId_t dev_id)
 {
   uint8_t messageCount = 0;
   ctrl_status_t ctrlStatus;
@@ -297,7 +295,7 @@ uint8_t CANSPI_messagesInBuffer_Ext(MCP2515_DevId dev_id)
  * @param dev_id MCP2515 设备 ID。
  * @return 如果总线关闭则返回 1，否则返回 0。
  */
-uint8_t CANSPI_isBussOff(MCP2515_DevId dev_id)
+uint8_t CANSPI_isBussOff(MCP2515_DevId_t dev_id)
 {
   uint8_t returnValue = 0;
   ctrl_error_status_t errorStatus;
@@ -321,7 +319,7 @@ uint8_t CANSPI_isBussOff(MCP2515_DevId dev_id)
  * @param dev_id MCP2515 设备 ID。
  * @return 如果接收错误被动则返回 1，否则返回 0。
  */
-uint8_t CANSPI_isRxErrorPassive(MCP2515_DevId dev_id)
+uint8_t CANSPI_isRxErrorPassive(MCP2515_DevId_t dev_id)
 {
   uint8_t returnValue = 0;
   ctrl_error_status_t errorStatus; 
@@ -345,7 +343,7 @@ uint8_t CANSPI_isRxErrorPassive(MCP2515_DevId dev_id)
  * @param dev_id MCP2515 设备 ID。
  * @return 如果发送错误被动则返回 1，否则返回 0。
  */
-uint8_t CANSPI_isTxErrorPassive(MCP2515_DevId dev_id)
+uint8_t CANSPI_isTxErrorPassive(MCP2515_DevId_t dev_id)
 {
   uint8_t returnValue = 0;
   ctrl_error_status_t errorStatus;

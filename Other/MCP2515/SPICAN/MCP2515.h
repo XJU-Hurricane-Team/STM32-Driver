@@ -103,7 +103,7 @@ typedef enum {
     MCP2515_DEV_1 = 0U,      // 对应DEV1
     MCP2515_DEV_2,          // 对应DEV2
     MCP2515_DEV_3             // 对应DEV3
-} MCP2515_DevId;
+} MCP2515_DevId_t;
 
 typedef union{
   struct{
@@ -226,25 +226,25 @@ typedef struct{
 }id_reg_t;
 
 bool MCP2515_Initialize(void);
-void MCP2515_WriteByteSequence_Ext(MCP2515_DevId dev_id, uint8_t startAddress, uint8_t endAddress, uint8_t *data);
-void MCP2515_LoadTxBuffer_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t data);
-void MCP2515_Reset_Ext(MCP2515_DevId dev_id);
-uint8_t MCP2515_ReadByte_Ext(MCP2515_DevId dev_id, uint8_t address);
-void MCP2515_WriteByte_Ext(MCP2515_DevId dev_id, uint8_t address, uint8_t data);
-void MCP2515_ReadRxSequence_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t *data, uint8_t length);
-void MCP2515_LoadTxSequence_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t *idReg, uint8_t dlc, uint8_t *data);
-void MCP2515_BitModify_Ext(MCP2515_DevId dev_id, uint8_t address, uint8_t mask, uint8_t data);
-uint8_t MCP2515_ReadStatus_Ext(MCP2515_DevId dev_id);
-uint8_t MCP2515_GetRxStatus_Ext(MCP2515_DevId dev_id);
-bool MCP2515_SetConfigMode_Ext(MCP2515_DevId dev_id);
-bool MCP2515_SetNormalMode_Ext(MCP2515_DevId dev_id);
-bool MCP2515_SetSleepMode_Ext(MCP2515_DevId dev_id);
-void MCP2515_RequestToSend_Ext(MCP2515_DevId dev_id, uint8_t instruction);
-void MCP2515_SetCSPin(MCP2515_DevId dev_id, GPIO_PinState state);
+void MCP2515_WriteByteSequence_Ext(MCP2515_DevId_t dev_id, uint8_t startAddress, uint8_t endAddress, uint8_t *data);
+void MCP2515_LoadTxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t data);
+void MCP2515_Reset_Ext(MCP2515_DevId_t dev_id);
+uint8_t MCP2515_ReadByte_Ext(MCP2515_DevId_t dev_id, uint8_t address);
+void MCP2515_WriteByte_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t data);
+void MCP2515_ReadRxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t *data, uint8_t length);
+void MCP2515_LoadTxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t *idReg, uint8_t dlc, uint8_t *data);
+void MCP2515_BitModify_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t mask, uint8_t data);
+uint8_t MCP2515_ReadStatus_Ext(MCP2515_DevId_t dev_id);
+uint8_t MCP2515_GetRxStatus_Ext(MCP2515_DevId_t dev_id);
+bool MCP2515_SetConfigMode_Ext(MCP2515_DevId_t dev_id);
+bool MCP2515_SetNormalMode_Ext(MCP2515_DevId_t dev_id);
+bool MCP2515_SetSleepMode_Ext(MCP2515_DevId_t dev_id);
+void MCP2515_RequestToSend_Ext(MCP2515_DevId_t dev_id, uint8_t instruction);
+void MCP2515_SetCSPin(MCP2515_DevId_t dev_id, GPIO_PinState state);
 void MCP2515_INT_Init(void);
-void MCP2515_ClearIntFlag_Ext(MCP2515_DevId dev_id, uint8_t intMask);
-void MCP2515_EnableInt_Ext(MCP2515_DevId dev_id, uint8_t intMask);
-void MCP2515_DisableInt_Ext(MCP2515_DevId dev_id, uint8_t intMask);
+void MCP2515_ClearIntFlag_Ext(MCP2515_DevId_t dev_id, uint8_t intMask);
+void MCP2515_EnableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask);
+void MCP2515_DisableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask);
 
 // 启用的设备开关（1=启用，0=禁用）
 #define MCP2515_DEV1_ENABLE 1   // 设备1

@@ -107,7 +107,6 @@ Drivers_Achieve/
 
 ```c
 #include "./SPICAN/CANSPI.h"
-#include "./SPICAN/MCP2515.h"
 #include "./Damiao-Motor_spican/damiao_spican.h"
 #include "./spican_list/spican_list.h"
 
@@ -146,7 +145,7 @@ void task1(void *pvParameters) {
 
 ##  常见注意点
 
-- MCP2515要求SPI最大时钟频率10Mhz
+- MCP2515要求SPI最大时钟频率10Mhz，SPI配置为模式0(CPOL = 0，CPHA = 0)
 
 - 为满足1MBaud通信，MCP2515须接入5V电源
 

@@ -22,13 +22,13 @@ static TaskHandle_t spican_list_task_handle;
 void spican_list_polling_task(void *args);
 
 
-static spican_selected_t mcp2515_get_spican_by_devid(MCP2515_DevId dev_id);
+static spican_selected_t mcp2515_get_spican_by_devid(MCP2515_DevId_t dev_id);
 /**
  * @brief 队列消息数据类型（扩展：增加MCP2515设备ID）
  */
 typedef struct {
     uint8_t is_mcp2515;        /*!< 是否为MCP2515消息：0=传统CAN，1=MCP2515 */
-    MCP2515_DevId dev_id;      /*!< MCP2515设备ID（核心扩展） */
+    MCP2515_DevId_t dev_id;      /*!< MCP2515设备ID（核心扩展） */
     GPIO_TypeDef *int_port;    /*!< MCP2515 INT引脚端口 */
     uint16_t int_pin;          /*!< MCP2515 INT引脚 */
 } queue_msg_t;
@@ -36,7 +36,7 @@ typedef struct {
 static queue_msg_t send_msg_from_isr;
 
 static const struct {
-    MCP2515_DevId dev_id;
+    MCP2515_DevId_t dev_id;
     GPIO_TypeDef *int_port;
     uint16_t int_pin;
     IRQn_Type irq_num;
@@ -409,14 +409,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
         }
     }
 
-    LED0_TOGGLE();
 #endif
 }
 
 #endif
 
 
-void mcp2515_process_msg(MCP2515_DevId dev_id) {
+void mcp2515_process_msg(MCP2515_DevId_t dev_id) {
     uCAN_MSG can_msg;
     uint8_t rx_data[8] = {0}; 
     spican_rx_header_t call_rx_header = {0};
@@ -465,8 +464,8 @@ void mcp2515_process_msg(MCP2515_DevId dev_id) {
     }
 }
 
-static spican_selected_t mcp2515_get_spican_by_devid(MCP2515_DevId dev_id) {
-    // MCP2515_DevId -> spican_selected_t 映射
+static spican_selected_t mcp2515_get_spican_by_devid(MCP2515_DevId_t dev_id) {
+    // MCP2515_DevId_t -> spican_selected_t 映射
     switch (dev_id) {
         case MCP2515_DEV_1: return spican1_selected;
         case MCP2515_DEV_2: return spican2_selected;
