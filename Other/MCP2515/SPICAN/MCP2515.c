@@ -23,12 +23,12 @@ SPI_HandleTypeDef *spicanx_selected[] = {
 };
     
 /* Prototypes */
-static void SPI_Tx_Ext(MCP2515_DevId_t dev_id, uint8_t data);
-static void SPI_TxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t *buffer, uint8_t length);
-static uint8_t SPI_Rx_Ext(MCP2515_DevId_t dev_id);
-static void SPI_RxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t *buffer, uint8_t length);
-static SPI_HandleTypeDef* MCP2515_GetSPIHandle(MCP2515_DevId_t dev_id);
-void MCP2515_SetCSPin(MCP2515_DevId_t dev_id, GPIO_PinState state);
+static void SPI_Tx_Ext(MCP2515_DevId dev_id, uint8_t data);
+static void SPI_TxBuffer_Ext(MCP2515_DevId dev_id, uint8_t *buffer, uint8_t length);
+static uint8_t SPI_Rx_Ext(MCP2515_DevId dev_id);
+static void SPI_RxBuffer_Ext(MCP2515_DevId dev_id, uint8_t *buffer, uint8_t length);
+static SPI_HandleTypeDef* MCP2515_GetSPIHandle(MCP2515_DevId dev_id);
+void MCP2515_SetCSPin(MCP2515_DevId dev_id, GPIO_PinState state);
 
 /**
  * @brief 初始化 MCP2515 设备及相关 GPIO/SPI 接口。
@@ -188,7 +188,7 @@ void MCP2515_INT_Init(void)
  * @param dev_id MCP2515 设备 ID。
  * @return 成功进入配置模式返回 true，超时返回 false。
  */
-bool MCP2515_SetConfigMode_Ext(MCP2515_DevId_t dev_id)
+bool MCP2515_SetConfigMode_Ext(MCP2515_DevId dev_id)
 {
     /* configure CANCTRL Register */
     MCP2515_WriteByte_Ext(dev_id, MCP2515_CANCTRL, 0x80);
@@ -216,7 +216,7 @@ bool MCP2515_SetConfigMode_Ext(MCP2515_DevId_t dev_id)
  * @param dev_id MCP2515 设备 ID。
  * @return 成功进入正常模式返回 true，超时返回 false。
  */
-bool MCP2515_SetNormalMode_Ext(MCP2515_DevId_t dev_id)
+bool MCP2515_SetNormalMode_Ext(MCP2515_DevId dev_id)
 {
     /* configure CANCTRL Register */
     MCP2515_WriteByte_Ext(dev_id, MCP2515_CANCTRL, 0x00);
@@ -244,7 +244,7 @@ bool MCP2515_SetNormalMode_Ext(MCP2515_DevId_t dev_id)
  * @param dev_id MCP2515 设备 ID。
  * @return 成功进入睡眠模式返回 true，超时返回 false。
  */
-bool MCP2515_SetSleepMode_Ext(MCP2515_DevId_t dev_id)
+bool MCP2515_SetSleepMode_Ext(MCP2515_DevId dev_id)
 {
     /* configure CANCTRL Register */
     MCP2515_WriteByte_Ext(dev_id, MCP2515_CANCTRL, 0x20);
@@ -270,7 +270,7 @@ bool MCP2515_SetSleepMode_Ext(MCP2515_DevId_t dev_id)
  *
  * @param dev_id MCP2515 设备 ID。
  */
-void MCP2515_Reset_Ext(MCP2515_DevId_t dev_id)
+void MCP2515_Reset_Ext(MCP2515_DevId dev_id)
 {    
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET);
  
@@ -289,7 +289,7 @@ void MCP2515_Reset_Ext(MCP2515_DevId_t dev_id)
  * @param address 目标寄存器地址。
  * @return 从寄存器中读取到的字节值。
  */
-uint8_t MCP2515_ReadByte_Ext(MCP2515_DevId_t dev_id, uint8_t address)
+uint8_t MCP2515_ReadByte_Ext(MCP2515_DevId dev_id, uint8_t address)
 {
     uint8_t retVal;
   
@@ -315,7 +315,7 @@ uint8_t MCP2515_ReadByte_Ext(MCP2515_DevId_t dev_id, uint8_t address)
  * @param data 目标数据缓冲区。
  * @param length 要读取的字节数。
  */
-void MCP2515_ReadRxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t *data, uint8_t length)
+void MCP2515_ReadRxSequence_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t *data, uint8_t length)
 {
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET);
   
@@ -335,7 +335,7 @@ void MCP2515_ReadRxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uin
  * @param address 目标寄存器地址。
  * @param data 要写入的字节。
  */
-void MCP2515_WriteByte_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t data)
+void MCP2515_WriteByte_Ext(MCP2515_DevId dev_id, uint8_t address, uint8_t data)
 {    
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET); 
   
@@ -357,7 +357,7 @@ void MCP2515_WriteByte_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t data
  * @param endAddress 结束寄存器地址。
  * @param data 要写入的数据缓冲区。
  */
-void MCP2515_WriteByteSequence_Ext(MCP2515_DevId_t dev_id, uint8_t startAddress, uint8_t endAddress, uint8_t *data)
+void MCP2515_WriteByteSequence_Ext(MCP2515_DevId dev_id, uint8_t startAddress, uint8_t endAddress, uint8_t *data)
 {
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET);
     
@@ -382,7 +382,7 @@ void MCP2515_WriteByteSequence_Ext(MCP2515_DevId_t dev_id, uint8_t startAddress,
  * @param dlc 数据长度码。
  * @param data 指向要发送的数据缓冲区。
  */
-void MCP2515_LoadTxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t *idReg, uint8_t dlc, uint8_t *data)
+void MCP2515_LoadTxSequence_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t *idReg, uint8_t dlc, uint8_t *data)
 {    
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET);
   
@@ -404,7 +404,7 @@ void MCP2515_LoadTxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uin
  * @param instruction 发送缓存写入指令。
  * @param data 要写入的字节。
  */
-void MCP2515_LoadTxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t data)
+void MCP2515_LoadTxBuffer_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t data)
 {
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET); 
     
@@ -424,7 +424,7 @@ void MCP2515_LoadTxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8
  * @param dev_id MCP2515 设备 ID。
  * @param instruction RTS 指令（例如 RTS TXB0、TXB1、TXB2）。
  */
-void MCP2515_RequestToSend_Ext(MCP2515_DevId_t dev_id, uint8_t instruction)
+void MCP2515_RequestToSend_Ext(MCP2515_DevId dev_id, uint8_t instruction)
 {
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET);
   
@@ -443,7 +443,7 @@ void MCP2515_RequestToSend_Ext(MCP2515_DevId_t dev_id, uint8_t instruction)
  * @param dev_id MCP2515 设备 ID。
  * @return 状态寄存器的字节值。
  */
-uint8_t MCP2515_ReadStatus_Ext(MCP2515_DevId_t dev_id)
+uint8_t MCP2515_ReadStatus_Ext(MCP2515_DevId dev_id)
 {
     uint8_t retVal;
   
@@ -467,7 +467,7 @@ uint8_t MCP2515_ReadStatus_Ext(MCP2515_DevId_t dev_id)
  * @param dev_id MCP2515 设备 ID。
  * @return 接收状态寄存器的字节值。
  */
-uint8_t MCP2515_GetRxStatus_Ext(MCP2515_DevId_t dev_id)
+uint8_t MCP2515_GetRxStatus_Ext(MCP2515_DevId dev_id)
 {
     uint8_t retVal;
   
@@ -493,7 +493,7 @@ uint8_t MCP2515_GetRxStatus_Ext(MCP2515_DevId_t dev_id)
  * @param mask 位掩码，1 表示修改的位。
  * @param data 要写入的新位值。
  */
-void MCP2515_BitModify_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t mask, uint8_t data)
+void MCP2515_BitModify_Ext(MCP2515_DevId dev_id, uint8_t address, uint8_t mask, uint8_t data)
 {    
     MCP2515_SetCSPin(dev_id, GPIO_PIN_RESET);
   
@@ -514,7 +514,7 @@ void MCP2515_BitModify_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t mask
  * @param dev_id MCP2515 设备 ID。
  * @param data 要发送的字节。
  */
-static void SPI_Tx_Ext(MCP2515_DevId_t dev_id, uint8_t data)
+static void SPI_Tx_Ext(MCP2515_DevId dev_id, uint8_t data)
 {
     SPI_HandleTypeDef *hspi = MCP2515_GetSPIHandle(dev_id);
     HAL_SPI_Transmit(hspi, &data, 1, SPI_TIMEOUT);    
@@ -529,7 +529,7 @@ static void SPI_Tx_Ext(MCP2515_DevId_t dev_id, uint8_t data)
  * @param dev_id MCP2515 设备 ID。
  * @return 接收到的字节。
  */
-static uint8_t SPI_Rx_Ext(MCP2515_DevId_t dev_id)
+static uint8_t SPI_Rx_Ext(MCP2515_DevId dev_id)
 {
     uint8_t retVal;
     SPI_HandleTypeDef *hspi = MCP2515_GetSPIHandle(dev_id);
@@ -547,7 +547,7 @@ static uint8_t SPI_Rx_Ext(MCP2515_DevId_t dev_id)
  * @param buffer 数据缓冲区。
  * @param length 要发送的字节数。
  */
-static void SPI_TxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t *buffer, uint8_t length)
+static void SPI_TxBuffer_Ext(MCP2515_DevId dev_id, uint8_t *buffer, uint8_t length)
 {
     SPI_HandleTypeDef *hspi = MCP2515_GetSPIHandle(dev_id);
     HAL_SPI_Transmit(hspi, buffer, length, SPI_TIMEOUT);    
@@ -563,7 +563,7 @@ static void SPI_TxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t *buffer, uint8_t le
  * @param buffer 目标数据缓冲区。
  * @param length 要接收的字节数。
  */
-static void SPI_RxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t *buffer, uint8_t length)
+static void SPI_RxBuffer_Ext(MCP2515_DevId dev_id, uint8_t *buffer, uint8_t length)
 {
     SPI_HandleTypeDef *hspi = MCP2515_GetSPIHandle(dev_id);
     HAL_SPI_Receive(hspi, buffer, length, SPI_TIMEOUT);
@@ -579,7 +579,7 @@ static void SPI_RxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t *buffer, uint8_t le
  * @param dev_id MCP2515 设备 ID。
  * @param intMask 中断掩码位。
  */
-void MCP2515_EnableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask)
+void MCP2515_EnableInt_Ext(MCP2515_DevId dev_id, uint8_t intMask)
 {
     MCP2515_BitModify_Ext(dev_id, MCP2515_CANINTE, intMask, intMask);
 }
@@ -594,7 +594,7 @@ void MCP2515_EnableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask)
  * @param dev_id MCP2515 设备 ID。
  * @param intMask 中断掩码位。
  */
-void MCP2515_DisableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask)
+void MCP2515_DisableInt_Ext(MCP2515_DevId dev_id, uint8_t intMask)
 {
     MCP2515_BitModify_Ext(dev_id, MCP2515_CANINTE, intMask, 0x00);
 }
@@ -609,7 +609,7 @@ void MCP2515_DisableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask)
  * @param dev_id MCP2515 设备 ID。
  * @param intMask 中断标志掩码。
  */
-void MCP2515_ClearIntFlag_Ext(MCP2515_DevId_t dev_id, uint8_t intMask)
+void MCP2515_ClearIntFlag_Ext(MCP2515_DevId dev_id, uint8_t intMask)
 {
     MCP2515_BitModify_Ext(dev_id, MCP2515_CANINTF, intMask, 0x00);
 }
@@ -624,7 +624,7 @@ void MCP2515_ClearIntFlag_Ext(MCP2515_DevId_t dev_id, uint8_t intMask)
  * @param dev_id MCP2515 设备 ID。
  * @param state 片选引脚状态（GPIO_PIN_RESET/SET）。
  */
-void MCP2515_SetCSPin(MCP2515_DevId_t dev_id, GPIO_PinState state)
+void MCP2515_SetCSPin(MCP2515_DevId dev_id, GPIO_PinState state)
 {
     switch(dev_id)
     {
@@ -662,7 +662,7 @@ void MCP2515_SetCSPin(MCP2515_DevId_t dev_id, GPIO_PinState state)
  * @param dev_id MCP2515 设备 ID。
  * @return 对应的 SPI 句柄或 NULL。
  */
-static SPI_HandleTypeDef* MCP2515_GetSPIHandle(MCP2515_DevId_t dev_id)
+static SPI_HandleTypeDef* MCP2515_GetSPIHandle(MCP2515_DevId dev_id)
 {
     switch(dev_id)
     {
