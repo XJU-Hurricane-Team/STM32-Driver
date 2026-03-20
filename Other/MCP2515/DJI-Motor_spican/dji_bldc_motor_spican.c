@@ -22,7 +22,7 @@ static void spican_callback(void *node_obj, spican_rx_header_t *can_rx_header,
         return;
     }
 
-    dji_motor_handle_t_mcp2515 *motor_point = (dji_motor_handle_t_mcp2515 *)node_obj;
+    dji_motor_mcp_handle_t *motor_point = (dji_motor_mcp_handle_t *)node_obj;
 
     if (can_rx_header->id_type != CAN_ID_STD &&
         can_rx_header->id != motor_point->motor_id) {
@@ -41,7 +41,7 @@ static void spican_callback(void *node_obj, spican_rx_header_t *can_rx_header,
     }
 
     switch (motor_point->motor_model) {
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
+#if (DJI_MOTOR_USE_M3508_2006_MCP == 1)
         case DJI_M3508: {
             motor_point->real_current = (float)(spican_msg[2] << 8 | spican_msg[3]);
             motor_point->speed_rpm = (int16_t)(motor_point->real_current);
@@ -54,16 +54,16 @@ static void spican_callback(void *node_obj, spican_rx_header_t *can_rx_header,
             motor_point->real_current =
                 (float)(spican_msg[4] << 8 | spican_msg[5]) * 5.0f / 16384.0f;
         } break;
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
+#endif /* DJI_MOTOR_USE_M3508_2006_MCP == 1 */
 
-#if (DJI_MOTOR_USE_GM6020 == 1)
+#if (DJI_MOTOR_USE_GM6020_MCP == 1)
         case DJI_GM6020: {
             motor_point->speed_rpm = (int16_t)(spican_msg[2] << 8 | spican_msg[3]);
             motor_point->torque_current =
                 (int16_t)(spican_msg[4] << 8 | spican_msg[5]);
             motor_point->temperature = spican_msg[6];
         } break;
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
+#endif /* DJI_MOTOR_USE_GM6020_MCP == 1 */
 
         default: {
         } break;
@@ -88,7 +88,7 @@ static void spican_callback(void *node_obj, spican_rx_header_t *can_rx_header,
      * angle / 22.75
      */
     switch (motor_point->motor_model) {
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
+#if (DJI_MOTOR_USE_M3508_2006_MCP == 1)
         case DJI_M3508: {
             /* 3508 减速比 1:19 */
             motor_point->rotor_degree =
@@ -100,13 +100,13 @@ static void spican_callback(void *node_obj, spican_rx_header_t *can_rx_header,
             motor_point->rotor_degree =
                 (float)(motor_point->total_angle) / (36.0f * 8192.0f) * 360.0f;
         } break;
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
+#endif /* DJI_MOTOR_USE_M3508_2006_MCP == 1 */
 
-#if (DJI_MOTOR_USE_GM6020 == 1)
+#if (DJI_MOTOR_USE_GM6020_MCP == 1)
         case DJI_GM6020: {
             motor_point->rotor_degree = (float)(motor_point->angle) / 22.75f;
         } break;
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
+#endif /* DJI_MOTOR_USE_GM6020_MCP == 1 */
 
         default: {
         } break;
@@ -125,8 +125,8 @@ static void spican_callback(void *node_obj, spican_rx_header_t *can_rx_header,
  * @retval - 1: `motor`指针为空
  * @retval - 2: 添加 CAN 接收表错误
  */
-uint8_t dji_motor_init_mcp2515(dji_motor_handle_t_mcp2515 *motor, dji_motor_model_t_mcp2515 motor_model,
-                       dji_can_id_t_mcp2515 can_id, spican_selected_t spican_select) {
+uint8_t dji_motor_init_mcp2515(dji_motor_mcp_handle_t *motor, dji_motor_model_mcp_t motor_model,
+                       dji_can_id_mcp_t can_id, spican_selected_t spican_select) {
     if (motor == NULL) {
         return 1;
     }
@@ -151,7 +151,7 @@ uint8_t dji_motor_init_mcp2515(dji_motor_handle_t_mcp2515 *motor, dji_motor_mode
  * @return - 1: `motor`为空
  * @retval - 2: 移除出错
  */
-uint8_t dji_motor_deinit_mcp2515(dji_motor_handle_t_mcp2515 *motor) {
+uint8_t dji_motor_deinit_mcp2515(dji_motor_mcp_handle_t *motor) {
     if (motor == NULL) {
         return 1;
     }
@@ -164,7 +164,7 @@ uint8_t dji_motor_deinit_mcp2515(dji_motor_handle_t_mcp2515 *motor) {
     return 0;
 }
 
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
+#if (DJI_MOTOR_USE_M3508_2006_MCP == 1)
 
 /**
  * @brief 设置 M3508/2006 电机电流
@@ -172,16 +172,16 @@ uint8_t dji_motor_deinit_mcp2515(dji_motor_handle_t_mcp2515 *motor) {
  * @param can_select 选择那个 CAN 发送
  *  @arg `can1_selected` 或者 `can2_selected`
  * @param can_identify CAN 标识符
- *  @arg `DJI_MOTOR_GROUP1` 或 `DJI_MOTOR_GROUP2`
+ *  @arg `DJI_MOTOR_GROUP1_MCP` 或 `DJI_MOTOR_GROUP2_MCP`
  * @param iq1 电机 1 电流
  * @param iq2 电机 2 电流
  * @param iq3 电机 3 电流
  * @param iq4 电机 4 电流
  */
-void dji_motor_set_current_mcp2515(MCP2515_DevId dev_id, uint16_t can_identify,
+void dji_motor_set_current_mcp2515(MCP2515_DevId_t dev_id, uint16_t can_identify,
                                    int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4) {
    
-    if (can_identify != DJI_MOTOR_GROUP1 && can_identify != DJI_MOTOR_GROUP2) {
+    if (can_identify != DJI_MOTOR_GROUP1_MCP && can_identify != DJI_MOTOR_GROUP2_MCP) {
         return;
     }
 
@@ -200,9 +200,7 @@ void dji_motor_set_current_mcp2515(MCP2515_DevId dev_id, uint16_t can_identify,
     send_msg[7] = iq4 & 0xFF;
 
     uCAN_MSG can_msg = {0};
-
     can_msg.frame.idType = dSTANDARD_CAN_MSG_ID_2_0B;
-
     can_msg.frame.id = can_identify;
     can_msg.frame.dlc = 8; 
 
@@ -218,9 +216,9 @@ void dji_motor_set_current_mcp2515(MCP2515_DevId dev_id, uint16_t can_identify,
     CANSPI_Transmit_Ext(dev_id, &can_msg);
 }
  
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
+#endif /* DJI_MOTOR_USE_M3508_2006_MCP == 1 */
 
-#if (DJI_MOTOR_USE_GM6020 == 1)
+#if (DJI_MOTOR_USE_GM6020_MCP == 1)
 
 /**
  * @brief GM6020 电压控制
@@ -228,18 +226,18 @@ void dji_motor_set_current_mcp2515(MCP2515_DevId dev_id, uint16_t can_identify,
  * @param can_select 选择那个 CAN 发送
  *  @arg `can1_selected` 或者 `can2_selected`
  * @param can_identify CAN 标识符
- *  @arg `DJI_GM6020_VOLTAGE_GROUP1` 或 `DJI_GM6020_VOLTAGE_GROUP2`
+ *  @arg `DJI_GM6020_VOLTAGE_GROUP1_MCP` 或 `DJI_GM6020_VOLTAGE_GROUP2_MCP`
  * @param voltage1 电机 1 电压
  * @param voltage2 电机 2 电压
  * @param voltage3 电机 3 电压
  * @param voltage4 电机 4 电压
  */
-void dji_gm6020_voltage_control_mcp2515(spican_selected_t spican_select,
+void dji_gm6020_voltage_control_mcp2515(MCP2515_DevId_t dev_id,
                                 uint16_t can_identify, int16_t voltage1,
                                 int16_t voltage2, int16_t voltage3,
                                 int16_t voltage4) {
-    if (can_identify != DJI_GM6020_VOLTAGE_GROUP1 &&
-        can_identify != DJI_GM6020_VOLTAGE_GROUP2) {
+    if (can_identify != DJI_GM6020_VOLTAGE_GROUP1_MCP &&
+        can_identify != DJI_GM6020_VOLTAGE_GROUP2_MCP) {
         /* 标识符不合法 */
         return;
     }
@@ -253,7 +251,22 @@ void dji_gm6020_voltage_control_mcp2515(spican_selected_t spican_select,
     send_msg[5] = voltage3 & 0xFF;
     send_msg[6] = (voltage4 >> 8) & 0xFF;
     send_msg[7] = voltage4 & 0xFF;
-    can_send_message(spican_select, CAN_ID_STD, can_identify, 8, send_msg);
+
+    uCAN_MSG can_msg = {0};
+    can_msg.frame.idType = dSTANDARD_CAN_MSG_ID_2_0B;
+    can_msg.frame.id = can_identify;
+    can_msg.frame.dlc = 8; 
+
+    can_msg.frame.data0 = send_msg[0];
+    can_msg.frame.data1 = send_msg[1];
+    can_msg.frame.data2 = send_msg[2];
+    can_msg.frame.data3 = send_msg[3];
+    can_msg.frame.data4 = send_msg[4];
+    can_msg.frame.data5 = send_msg[5];
+    can_msg.frame.data6 = send_msg[6];
+    can_msg.frame.data7 = send_msg[7];
+
+    CANSPI_Transmit_Ext(dev_id, &can_msg);
 }
 
 /**
@@ -262,18 +275,18 @@ void dji_gm6020_voltage_control_mcp2515(spican_selected_t spican_select,
  * @param can_select 选择那个 CAN 发送
  *  @arg `can1_selected` 或者 `can2_selected`
  * @param can_identify CAN 标识符
- *  @arg `DJI_GM6020_CURRENT_GROUP1` 或 `DJI_GM6020_CURRENT_GROUP2`
+ *  @arg `DJI_GM6020_CURRENT_GROUP1_MCP` 或 `DJI_GM6020_CURRENT_GROUP2_MCP`
  * @param current1 电机 1 电流
  * @param current2 电机 2 电流
  * @param current3 电机 3 电流
  * @param current4 电机 4 电流
  */
-void dji_gm6020_current_control_mcp2515(spican_selected_t spican_select,
+void dji_gm6020_current_control_mcp2515(MCP2515_DevId_t dev_id,
                                 uint16_t can_identify, int16_t current1,
                                 int16_t current2, int16_t current3,
                                 int16_t current4) {
-    if (can_identify != DJI_GM6020_CURRENT_GROUP1 &&
-        can_identify != DJI_GM6020_CURRENT_GROUP2) {
+    if (can_identify != DJI_GM6020_CURRENT_GROUP1_MCP &&
+        can_identify != DJI_GM6020_CURRENT_GROUP2_MCP) {
         /* 标识符不合法 */
         return;
     }
@@ -288,9 +301,22 @@ void dji_gm6020_current_control_mcp2515(spican_selected_t spican_select,
     send_msg[6] = (current4 >> 8) & 0xFF;
     send_msg[7] = current4 & 0xFF;
 
-    can_send_message(spican_select, CAN_ID_STD, can_identify, 8, send_msg);
+    uCAN_MSG can_msg = {0};
+    can_msg.frame.idType = dSTANDARD_CAN_MSG_ID_2_0B;
+    can_msg.frame.id = can_identify;
+    can_msg.frame.dlc = 8; 
+
+    can_msg.frame.data0 = send_msg[0];
+    can_msg.frame.data1 = send_msg[1];
+    can_msg.frame.data2 = send_msg[2];
+    can_msg.frame.data3 = send_msg[3];
+    can_msg.frame.data4 = send_msg[4];
+    can_msg.frame.data5 = send_msg[5];
+    can_msg.frame.data6 = send_msg[6];
+    can_msg.frame.data7 = send_msg[7];
+
+    CANSPI_Transmit_Ext(dev_id, &can_msg);
 }
 
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
+#endif /* DJI_MOTOR_USE_GM6020_MCP == 1 */
 
-/*-----------------------------------------------------------------------------*/

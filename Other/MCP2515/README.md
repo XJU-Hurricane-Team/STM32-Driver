@@ -107,12 +107,16 @@ Drivers_Achieve/
 
 ```c
 #include "./SPICAN/CANSPI.h"
-#include "./SPICAN/MCP2515.h"
 #include "./Damiao-Motor_spican/damiao_spican.h"
 #include "./spican_list/spican_list.h"
-
+	uint8_t canintf1_reg;
+    uint8_t canintf2_reg;
+    uint8_t can_tec;
+    uint8_t can_rec;
+    uint8_t can_elfg;
 void task1(void *pvParameters) {
     UNUSED(pvParameters);
+    
 	/* 注册达妙电机句柄(节点)并填入SPICAN哈希表 */
     dm_motor_init_mcp2515(&g_Damiao_motor_handle, 0x11, 0x01, DM_MODE_MIT, DM_G6220, 12.5, 45, 10, spican1_selected);
     /* 达妙电机使能 */
@@ -146,7 +150,7 @@ void task1(void *pvParameters) {
 
 ##  常见注意点
 
-- MCP2515要求SPI最大时钟频率10Mhz
+- MCP2515要求SPI最大时钟频率10Mhz，SPI配置为模式0(CPOL = 0，CPHA = 0)
 
 - 为满足1MBaud通信，MCP2515须接入5V电源
 

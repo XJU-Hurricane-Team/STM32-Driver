@@ -14,33 +14,33 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <cubemx.h>
+#include <CSP_Config.h>
 
 #include <stdbool.h>
 #include "spican_list/spican_list.h"
 
 
 /* 是否使用 M3508 或者 M2006 */
-#define DJI_MOTOR_USE_M3508_2006 1
+#define DJI_MOTOR_USE_M3508_2006_MCP 1
 /* 是否使用 GM6020 */
-#define DJI_MOTOR_USE_GM6020     1
+#define DJI_MOTOR_USE_GM6020_MCP     1
 
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
+#if (DJI_MOTOR_USE_M3508_2006_MCP == 1)
 
-#define DJI_MOTOR_GROUP1 0x200 /* M3508/2006 标识符 */
-#define DJI_MOTOR_GROUP2 0x1FF /* M3508/2006 标识符 */
+#define DJI_MOTOR_GROUP1_MCP 0x200 /* M3508/2006 标识符 */
+#define DJI_MOTOR_GROUP2_MCP 0x1FF /* M3508/2006 标识符 */
 
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
+#endif /* DJI_MOTOR_USE_M3508_2006_MCP == 1 */
 
-#if (DJI_MOTOR_USE_GM6020 == 1)
+#if (DJI_MOTOR_USE_GM6020_MCP == 1)
 
-#define DJI_GM6020_VOLTAGE_GROUP1 0x1FF /* GM6020 电压控制标识符 */
-#define DJI_GM6020_VOLTAGE_GROUP2 0x2FF /* GM6020 电压控制标识符 */
+#define DJI_GM6020_VOLTAGE_GROUP1_MCP 0x1FF /* GM6020 电压控制标识符 */
+#define DJI_GM6020_VOLTAGE_GROUP2_MCP 0x2FF /* GM6020 电压控制标识符 */
 
-#define DJI_GM6020_CURRENT_GROUP1 0x1FE /* GM6020 电流控制标识符 */
-#define DJI_GM6020_CURRENT_GROUP2 0x2FE /* GM6020 电流控制标识符 */
+#define DJI_GM6020_CURRENT_GROUP1_MCP 0x1FE /* GM6020 电流控制标识符 */
+#define DJI_GM6020_CURRENT_GROUP2_MCP 0x2FE /* GM6020 电流控制标识符 */
 
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
+#endif /* DJI_MOTOR_USE_GM6020_MCP == 1 */
 
 /**
  * @brief 电机型号
@@ -49,14 +49,14 @@ typedef enum {
     DJI_M3508 = 0x00, /*!< M3508 电机 */
     DJI_M2006 = 0x01, /*!< M2006 电机 */
     DJI_GM6020 = 0x02 /*!< GM6020 电机 */
-} dji_motor_model_t_mcp2515;
+} dji_motor_model_mcp_t;
 
 /**
  * @brief CAN ID 定义
  * @note GM6020 与 M3508/2006 公用 Motor5-8 的 ID
  */
 typedef enum {
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
+#if (DJI_MOTOR_USE_M3508_2006_MCP == 1)
     CAN_Motor1_ID = 0x201,
     CAN_Motor2_ID,
     CAN_Motor3_ID,
@@ -65,9 +65,9 @@ typedef enum {
     CAN_Motor6_ID,
     CAN_Motor7_ID,
     CAN_Motor8_ID,
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
+#endif /* DJI_MOTOR_USE_M3508_2006_MCP == 1 */
 
-#if (DJI_MOTOR_USE_GM6020 == 1)
+#if (DJI_MOTOR_USE_GM6020_MCP == 1)
     CAN_GM6020_ID1 = 0x205,
     CAN_GM6020_ID2,
     CAN_GM6020_ID3,
@@ -75,29 +75,29 @@ typedef enum {
     CAN_GM6020_ID5,
     CAN_GM6020_ID6,
     CAN_GM6020_ID7
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
-} dji_can_id_t_mcp2515;
+#endif /* DJI_MOTOR_USE_GM6020_MCP == 1 */
+} dji_can_id_mcp_t;
 
 /**
  * @brief 电机参数结构体
  */
 typedef struct {
 
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
+#if (DJI_MOTOR_USE_M3508_2006_MCP == 1)
 
     /* 3508/2006 参数 */
     float real_current;    /*!< 实际电流 */
     int16_t given_current; /*!< 期望电流，M3508 电机才会赋值 */
 
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
+#endif /* DJI_MOTOR_USE_M3508_2006_MCP == 1 */
 
-#if (DJI_MOTOR_USE_GM6020 == 1)
+#if (DJI_MOTOR_USE_GM6020_MCP == 1)
 
     /* GM6020 参数 */
     int16_t torque_current; /*!< 实际转矩电流 */
     uint8_t temperature;    /*!< 温度 */
 
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
+#endif /* DJI_MOTOR_USE_GM6020_MCP == 1 */
 
     /* 共用参数 */
     uint8_t hall; /*!< 可能是霍尔传感器值 */
@@ -119,21 +119,21 @@ typedef struct {
     int16_t set_value; /*!< 设置的值，电压或电流值 */
     int16_t speed_rpm; /*!< 速度 */
 
-    dji_can_id_t_mcp2515 motor_id;         /*!< 电机 ID */
-    dji_motor_model_t_mcp2515 motor_model; /*!< 电机型号 */
+    dji_can_id_mcp_t motor_id;         /*!< 电机 ID */
+    dji_motor_model_mcp_t motor_model; /*!< 电机型号 */
     spican_selected_t spican_select;     /*!< 选择 CAN 通信 */
-} dji_motor_handle_t_mcp2515;
+} dji_motor_mcp_handle_t;
 
-uint8_t dji_motor_init_mcp2515(dji_motor_handle_t_mcp2515 *motor, dji_motor_model_t_mcp2515 motor_model,
-                       dji_can_id_t_mcp2515 can_id, spican_selected_t spican_select);
-uint8_t dji_motor_deinit_mcp2515(dji_motor_handle_t_mcp2515 *motor);
+uint8_t dji_motor_init_mcp2515(dji_motor_mcp_handle_t *motor, dji_motor_model_mcp_t motor_model,
+                       dji_can_id_mcp_t can_id, spican_selected_t spican_select);
+uint8_t dji_motor_deinit_mcp2515(dji_motor_mcp_handle_t *motor);
 
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
-void dji_motor_set_current_mcp2515(MCP2515_DevId dev_id, uint16_t can_identify,
+#if (DJI_MOTOR_USE_M3508_2006_MCP == 1)
+void dji_motor_set_current_mcp2515(MCP2515_DevId_t dev_id, uint16_t can_identify,
                                    int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4);
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
+#endif /* DJI_MOTOR_USE_M3508_2006_MCP == 1 */
 
-#if (DJI_MOTOR_USE_GM6020 == 1)
+#if (DJI_MOTOR_USE_GM6020_MCP == 1)
 void dji_gm6020_voltage_control_mcp2515(spican_selected_t spican_select,
                                 uint16_t can_identify, int16_t voltage1,
                                 int16_t voltage2, int16_t voltage3,
@@ -143,13 +143,11 @@ void dji_gm6020_current_control_mcp2515(spican_selected_t spican_select,
                                 uint16_t can_identify, int16_t current1,
                                 int16_t current2, int16_t current3,
                                 int16_t current4);
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
+#endif /* DJI_MOTOR_USE_GM6020_MCP == 1 */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-
 
 #endif /* __DJI_BLDC_MOTOR_H */
 
