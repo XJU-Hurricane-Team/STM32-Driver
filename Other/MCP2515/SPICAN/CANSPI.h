@@ -10,7 +10,7 @@
 #ifndef __CAN_SPI_H
 #define	__CAN_SPI_H
 
-#include <CSP_Config.h>
+#include <cubemx.h>
 #include "MCP2515.h"
 #include <stdbool.h>
 
@@ -34,16 +34,15 @@ typedef union {
 #define dSTANDARD_CAN_MSG_ID_2_0B 0
 #define dEXTENDED_CAN_MSG_ID_2_0B 1
 
-bool CANSPI_Initialize_Ext(MCP2515_DevId dev_id);
-void CANSPI_Sleep_Ext(MCP2515_DevId dev_id);
-uint8_t CANSPI_Transmit_Ext(MCP2515_DevId dev_id, uCAN_MSG *tempCanMsg);
-uint8_t CANSPI_Receive_Ext(MCP2515_DevId dev_id, uCAN_MSG *tempCanMsg);
-uint8_t CANSPI_messagesInBuffer_Ext(MCP2515_DevId dev_id);
-uint8_t CANSPI_isBussOff(MCP2515_DevId dev_id);
-uint8_t CANSPI_isRxErrorPassive(MCP2515_DevId dev_id);
-uint8_t CANSPI_isTxErrorPassive(MCP2515_DevId dev_id);
+bool CANSPI_Initialize_Ext(MCP2515_DevId_t dev_id);
+void CANSPI_Sleep_Ext(MCP2515_DevId_t dev_id);
+uint8_t CANSPI_Transmit_Ext(MCP2515_DevId_t dev_id, uCAN_MSG *tempCanMsg);
+uint8_t CANSPI_Receive_Ext(MCP2515_DevId_t dev_id, uCAN_MSG *tempCanMsg);
+uint8_t CANSPI_messagesInBuffer_Ext(MCP2515_DevId_t dev_id);
+uint8_t CANSPI_isBussOff(MCP2515_DevId_t dev_id);
+uint8_t CANSPI_isRxErrorPassive(MCP2515_DevId_t dev_id);
+uint8_t CANSPI_isTxErrorPassive(MCP2515_DevId_t dev_id);
 
-void test_ReadAllTXBCTRL(void);
 #endif	/* __CAN_SPI_H */
 
 

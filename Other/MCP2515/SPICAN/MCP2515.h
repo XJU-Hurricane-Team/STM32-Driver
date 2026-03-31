@@ -2,18 +2,23 @@
  * @file    MCP2515.h
  * @author  Dominate0017
  * @brief   MCP2515 SPI interface and interrupt helper routines.
- * @version 1.0
+ * @version 1.1
  * @date    2026-3-15
  * @note    Provides MCP2515 register definitions, SPI communication functions, and interrupt handling support.
  * @note    Origin Driver: https://github.com/eziya/STM32_SPI_MCP2515
  * @note    MCP2515 Datasheet: https://ww1.microchip.com/downloads/cn/DeviceDoc/21801D_CN.pdf
+ *******************************************************************************
+ *    Date    | Version |   Author    | Version Info
+ * -----------+---------+-------------+----------------------------------------
+ * 2026-03-19 |   1.0   | Dominate0017 | SPI阻塞式收发
+ * 2026-03-20 |   1.1   | Dominate0017 | SPI启用DMA收发，减少丢包与CPU占用
  */
 
 #ifndef __MCP2515_H
 #define	__MCP2515_H
 
 #include <stdbool.h>
-#include <CSP_Config.h>
+#include <cubemx.h>
 
 #define MCP2515_RESET           0xC0
 
@@ -103,7 +108,7 @@ typedef enum {
     MCP2515_DEV_1 = 0U,      // 对应DEV1
     MCP2515_DEV_2,          // 对应DEV2
     MCP2515_DEV_3             // 对应DEV3
-} MCP2515_DevId;
+} MCP2515_DevId_t;
 
 typedef union{
   struct{
@@ -226,25 +231,25 @@ typedef struct{
 }id_reg_t;
 
 bool MCP2515_Initialize(void);
-void MCP2515_WriteByteSequence_Ext(MCP2515_DevId dev_id, uint8_t startAddress, uint8_t endAddress, uint8_t *data);
-void MCP2515_LoadTxBuffer_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t data);
-void MCP2515_Reset_Ext(MCP2515_DevId dev_id);
-uint8_t MCP2515_ReadByte_Ext(MCP2515_DevId dev_id, uint8_t address);
-void MCP2515_WriteByte_Ext(MCP2515_DevId dev_id, uint8_t address, uint8_t data);
-void MCP2515_ReadRxSequence_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t *data, uint8_t length);
-void MCP2515_LoadTxSequence_Ext(MCP2515_DevId dev_id, uint8_t instruction, uint8_t *idReg, uint8_t dlc, uint8_t *data);
-void MCP2515_BitModify_Ext(MCP2515_DevId dev_id, uint8_t address, uint8_t mask, uint8_t data);
-uint8_t MCP2515_ReadStatus_Ext(MCP2515_DevId dev_id);
-uint8_t MCP2515_GetRxStatus_Ext(MCP2515_DevId dev_id);
-bool MCP2515_SetConfigMode_Ext(MCP2515_DevId dev_id);
-bool MCP2515_SetNormalMode_Ext(MCP2515_DevId dev_id);
-bool MCP2515_SetSleepMode_Ext(MCP2515_DevId dev_id);
-void MCP2515_RequestToSend_Ext(MCP2515_DevId dev_id, uint8_t instruction);
-void MCP2515_SetCSPin(MCP2515_DevId dev_id, GPIO_PinState state);
+void MCP2515_WriteByteSequence_Ext(MCP2515_DevId_t dev_id, uint8_t startAddress, uint8_t endAddress, uint8_t *data);
+void MCP2515_LoadTxBuffer_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t data);
+void MCP2515_Reset_Ext(MCP2515_DevId_t dev_id);
+uint8_t MCP2515_ReadByte_Ext(MCP2515_DevId_t dev_id, uint8_t address);
+void MCP2515_WriteByte_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t data);
+void MCP2515_ReadRxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t *data, uint8_t length);
+void MCP2515_LoadTxSequence_Ext(MCP2515_DevId_t dev_id, uint8_t instruction, uint8_t *idReg, uint8_t dlc, uint8_t *data);
+void MCP2515_BitModify_Ext(MCP2515_DevId_t dev_id, uint8_t address, uint8_t mask, uint8_t data);
+uint8_t MCP2515_ReadStatus_Ext(MCP2515_DevId_t dev_id);
+uint8_t MCP2515_GetRxStatus_Ext(MCP2515_DevId_t dev_id);
+bool MCP2515_SetConfigMode_Ext(MCP2515_DevId_t dev_id);
+bool MCP2515_SetNormalMode_Ext(MCP2515_DevId_t dev_id);
+bool MCP2515_SetSleepMode_Ext(MCP2515_DevId_t dev_id);
+void MCP2515_RequestToSend_Ext(MCP2515_DevId_t dev_id, uint8_t instruction);
+void MCP2515_SetCSPin(MCP2515_DevId_t dev_id, GPIO_PinState state);
 void MCP2515_INT_Init(void);
-void MCP2515_ClearIntFlag_Ext(MCP2515_DevId dev_id, uint8_t intMask);
-void MCP2515_EnableInt_Ext(MCP2515_DevId dev_id, uint8_t intMask);
-void MCP2515_DisableInt_Ext(MCP2515_DevId dev_id, uint8_t intMask);
+void MCP2515_ClearIntFlag_Ext(MCP2515_DevId_t dev_id, uint8_t intMask);
+void MCP2515_EnableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask);
+void MCP2515_DisableInt_Ext(MCP2515_DevId_t dev_id, uint8_t intMask);
 
 // 启用的设备开关（1=启用，0=禁用）
 #define MCP2515_DEV1_ENABLE 1   // 设备1
@@ -254,8 +259,8 @@ void MCP2515_DisableInt_Ext(MCP2515_DevId dev_id, uint8_t intMask);
 #if MCP2515_DEV1_ENABLE
 #define MCP2515_DEV1_INT_PIN    GPIO_PIN_13
 #define MCP2515_DEV1_INT_PORT   GPIOB
-#define MCP2515_DEV1_SPI_HANDLE &spi1_handle
-#define MCP2515_DEV1_CS_PIN     GPIO_PIN_12
+#define MCP2515_DEV1_SPI_HANDLE &hspi1
+#define MCP2515_DEV1_CS_PIN     GPIO_PIN_15
 #define MCP2515_DEV1_CS_PORT    GPIOB
 #define MCP2515_DEV1_IRQn       EXTI15_10_IRQn
 #define MCP2515_DEV1_IRQ_PRIO   3

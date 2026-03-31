@@ -14,7 +14,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <CSP_Config.h>
+#include <cubemx.h>
 #include "spican_list/spican_list.h"
 
 /**
@@ -68,7 +68,7 @@ typedef enum {
 typedef struct {
     uint32_t master_id;        /*!< 反馈主机 ID */
     uint32_t device_id;        /*!< 控制设备 ID */
-    MCP2515_DevId dev_id;       /*!< 选择 SPICAN 通信 */
+    MCP2515_DevId_t dev_id;       /*!< 选择 SPICAN 通信 */
     spican_selected_t spican_select; /*!< 选择 SPICAN哈希表 */
     dm_model_t model;          /*!< 型号 */
     dm_mode_t mode;            /*!< 当前模式 */
