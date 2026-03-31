@@ -2,8 +2,8 @@
  * @file trajectory_plan.h
  * @author whyyy
  * @brief 
- * @version 0.1
- * @date 2025-11-09
+ * @version 0.2
+ * @date 2026-3-31
  * 
  * @copyright Copyright (c) 2025
  * 
@@ -37,18 +37,18 @@ typedef enum {
  * 
  */
 typedef struct {
-    double p_start;        // 起始位置 (rad)
-    double p_goal;         // 目标位置 (rad)
-    double v_max;          // 最大速度 (rad/s)
-    double a_max;          // 最大加速度 (rad/s^2)
-    double dt;             // 控制周期时间 (s)
-    double total_time;     // 总运动时间 (s)
-    double ta;             // 加速/减速时间 (s)
-    double tv;             // 匀速时间 (s)
-    double p_accel;        // 加速段距离 (rad)
+    float p_start;        // 起始位置 (rad)
+    float p_goal;         // 目标位置 (rad)
+    float v_max;          // 最大速度 (rad/s)
+    float a_max;          // 最大加速度 (rad/s^2)
+    float dt;             // 控制周期时间 (s)
+    float total_time;     // 总运动时间 (s)
+    float ta;             // 加速/减速时间 (s)
+    float tv;             // 匀速时间 (s)
+    float p_accel;        // 加速段距离 (rad)
     TrajectoryState state; // 当前运动状态
-    double current_time;   // 运动已进行时间 (s)
-    int is_negative;       // 运动方向标记 (1或-1)
+    float current_time;   // 运动已进行时间 (s)
+    int8_t is_negative;       // 运动方向标记 (1或-1)
 } Trajectory_Handler_t;
 
 void t_trajectory_init(Trajectory_Handler_t *traj, float p_start, float p_goal, float v_max, float a_max, float dt);

@@ -2,12 +2,12 @@
  * @file trajectory_plan.c
  * @author whyyy
  * @brief 
- * @version 0.1
- * @date 2025-11-09
+ * @version 0.2
+ * @date 2026-3-31
  * 
  * 
  */
-#include "./trajectory_plan/trajectory_plan.h"
+#include "trajectory_plan/trajectory_plan.h"
 
 
 /**
