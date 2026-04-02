@@ -5,20 +5,20 @@
  * @version 0.2
  * @date 2026-3-31
  * 
- * @copyright Copyright (c) 2025
  * 
  */
 
-#ifndef S_CURVE_PROGRAMING
-#define S_CURVE_PROGRAMING
+#ifndef TRAJECTORY_PLAN_H
+#define TRAJECTORY_PLAN_H
 
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
 
 #define RAD_TO_RPM    9.549296f
 #define RAD_TO_DEGREE 57.29578f
 #define DEGREE_TO_RAD 0.0174533f
-#define PI 3.1415926535
+#define PI 3.1415926535f
 
 /**
  * @brief 运动状态标志
@@ -54,5 +54,5 @@ typedef struct {
 void t_trajectory_init(Trajectory_Handler_t *traj, float p_start, float p_goal, float v_max, float a_max, float dt);
 int t_trajectory_update(Trajectory_Handler_t *traj, float *p_des, float *w_des);
 
-#endif /* S_CURVE_PROGRAMING */
+#endif /* TRAJECTORY_PLAN_H */
 
