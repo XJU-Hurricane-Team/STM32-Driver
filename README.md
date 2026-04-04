@@ -23,6 +23,7 @@
 | step_motor    | 定时器PWM驱动步进电机驱动代码                                | 是       |
 | MLDS          | 铭朗科技 伺服电机                                            | 否       |
 | unitree_motor | 宇树GO-M8010-6电机                                           | 是       |
+| atk_smd       | 正点原子步进电机驱动（485）                                  | 是       |
 
 ### `Display`文件夹下：
 
