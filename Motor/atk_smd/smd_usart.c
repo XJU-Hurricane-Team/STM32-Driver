@@ -2,9 +2,8 @@
  * @file smd_usart.c
  * @author PickingChip
  * @brief 正点原子 步进电机驱动器 USART通信代码
- * @version 0.1
- * @date 2026-04-03
- * @note 使用DMA发送时依赖uart_ex.c,需要手动开启uart_ex.c中的发送，但不要开启接收功能。     
+ * @version 0.2
+ * @date 2026-04-03    
  * 
  */
 
@@ -15,13 +14,9 @@
 #include "queue.h"
 #include "semphr.h"
 
+
 #define SMD_UART_WAIT_TICKS pdMS_TO_TICKS(50) /* 等待上一次发送-应答完成 */
 #define SMD_RX_QUEUE_LEN    1                 /* 接收队列长度 */
-#define SMD_DMA             0                 /* 是否使用DMA发送 */
-
-#if SMD_DMA
-#include "./usart_ex/usart_ex.h"
-#endif
 
 typedef struct {
     UART_HandleTypeDef *huart;
@@ -36,6 +31,8 @@ static TaskHandle_t smd_receive_task_handle = NULL;
 static SemaphoreHandle_t smd_uart_available = NULL;
 static smd_recv_msg_t send_msg_from_isr;
 
+
+
 /**
  * @brief       串口发送发命令
  * @param       *cmd: 数据指针
@@ -49,60 +46,24 @@ void smd_usart_send_cmd(uint8_t *data, uint8_t len) {
 
     /* 确保串口没有被占用 */
     if (xSemaphoreTake(smd_uart_available, SMD_UART_WAIT_TICKS) != pdTRUE) {
-        /* 串口忙，当前命令不发送，避免打断正在进行的接收 */
+        /* 超时未获取到串口放弃发送，防止没有反馈数据锁死串口 */
+        HAL_UART_AbortReceive(SMD_UART);
+        xSemaphoreGive(smd_uart_available);
         return;
     }
 
     RS485_RE(1); /* 进入发送模式 */
-
-#if SMD_DMA
-    if (uart_dmatx_write(SMD_UART, data, len) == 0) {
-        RS485_RE(0); /* 进入接收模式 */
-        xSemaphoreGive(smd_uart_available);
-        return;
-    }
-
-    if (uart_dmatx_send(SMD_UART) == 0) {
-        RS485_RE(0); /* 进入接收模式 */
-        xSemaphoreGive(smd_uart_available);
-        return;
-    }
-#else /* 阻塞式发送 */
-
     if (HAL_UART_Transmit(SMD_UART, data, len, 100) != HAL_OK) {
         /* 发送失败时立即释放串口，避免发送任务永久阻塞 */
-        RS485_RE(0); /* 进入接收模式 */
         xSemaphoreGive(smd_uart_available);
         return;
     }
 
-    /*
-     * HAL_UART_Transmit 是阻塞发送，不会触发 HAL_UART_TxCpltCallback。
-     * 因此在这里直接切回接收并启动 ToIdle DMA。
-     */
     RS485_RE(0); /* 进入接收模式 */
     if (HAL_UARTEx_ReceiveToIdle_DMA(SMD_UART, g_rx_cmd, sizeof(g_rx_cmd)) !=
         HAL_OK) {
         xSemaphoreGive(smd_uart_available);
-    }
-
-#endif /* SMD_DMA */
-}
-
-/**
- * @brief 正点步进串口发送完成回调函数
- * @note 在usart_ex.c中被HAL_UART_TxCpltCallback调用
- * @param huart 串口句柄
- */
-void atksmd_uart_tx_cplt_callback(UART_HandleTypeDef *huart) {
-    if (huart == SMD_UART) {
-        /* 发送完成后立即启动接收 */
-        RS485_RE(0); /* 进入接收模式 */
-        if (HAL_UARTEx_ReceiveToIdle_DMA(huart, g_rx_cmd, sizeof(g_rx_cmd)) !=
-            HAL_OK) {
-            /* 接收 DMA 启动失败时释放串口，避免发送任务永久阻塞 */
-            xSemaphoreGiveFromISR(smd_uart_available, NULL);
-        }
+        return;
     }
 }
 
@@ -123,24 +84,19 @@ void atksmd_uart_rx_cplt_callback(UART_HandleTypeDef *huart, uint16_t Size) {
 
         send_msg_from_isr.huart = huart;
         send_msg_from_isr.Size = Size;
+
         (void)xQueueSendFromISR(smd_queue_handle, &send_msg_from_isr,
                                 &xHigherPriorityTaskWoken);
-        /* 接收完成释放对串口的占用 */
+        /* 释放串口信号量证明接收完成 */
         xSemaphoreGiveFromISR(smd_uart_available, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 }
 
-#if SMD_DMA /* 如果使用DMA，在uart_ex.c中实现回调函数 */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    atksmd_uart_tx_cplt_callback(huart);
-}
-#endif /* SMD_DMA */
-
-
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
     atksmd_uart_rx_cplt_callback(huart, Size);
 }
+
 
 /**
  * @brief 正点电机串口接收解析任务
@@ -162,6 +118,8 @@ void atk_smd_recv_task(void *pvParameters) {
         }
     }
 }
+
+
 
 /**
  * @brief 正点原子步进电机串口接收初始化

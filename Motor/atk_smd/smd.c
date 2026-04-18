@@ -1,9 +1,9 @@
 /**
  ****************************************************************************************************
  * @file        smd.c
- * @author      正点原子团队(ALIENTEK)
- * @version     V1.0
- * @date        2025-05-27
+ * @author      正点原子团队(ALIENTEK),PickingChip
+ * @version     V1.1
+ * @date        2026-04-18
  * @brief       步进电机驱动器 控制指令代码
  * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
  ****************************************************************************************************
@@ -14,18 +14,24 @@
  * 公司网址:www.alientek.com
  * 购买地址:openedv.taobao.com
  *
- * 修改说明
- * V1.0 20250527
- * 第一次发布
+ * @note        v1.1 增加了电机结构体方便存储电机状态，将电机信息打印到消息缓存区
  *
  ****************************************************************************************************
  */
 
 #include "./smd.h"
+#if COMM_TYPE == 0
 #include "./smd_usart.h"
+#elif COMM_TYPE == 1
+#include "./smd_can.h"
+#endif
+
 #include "stdio.h"
 #include "string.h"
-// #include "./BSP/CAN/can.h"
+#include "stdlib.h"
+
+/* 电机列表 */
+static smd_motor_t *smd_motor_list[MOTOR_NUM_MAX] = {0};
 
 /* 添加联合体 便于存储浮点数 */
 union
@@ -85,14 +91,38 @@ float bytes_to_float(uint8_t *buf)
 }
 
 /**
- * @brief   串口数据帧处理
+ * @brief 初始化电机
+ * @param motor 电机结构体指针
+ * @param motor_id 电机ID（地址）
+ *
+ */
+uint8_t smd_motor_init(smd_motor_t *motor, uint8_t motor_id) {
+    if (motor == NULL || motor_id >= MOTOR_NUM_MAX) {
+        return 1;
+    }
+
+    motor->slave_addr = motor_id;
+    motor->info = malloc(SMD_INFO_BUF_SIZE); /* 分配信息缓冲区 */
+    if (motor->info == NULL) {
+        return 2; /* 内存分配失败 */
+    }
+    memset(motor->info, 0, SMD_INFO_BUF_SIZE);
+    motor->valid_mask = 0;
+    smd_motor_list[motor_id] = motor;
+    return 0;
+}
+
+
+/**
+ * @brief   串口数据帧处理函数
  * @param   buffer: 输入缓冲区
  * @param   len: 缓冲区长度
  * @param   frame: 输出解析结果
  * @retval  无
  */
-bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame)
-{
+bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
+    size_t off = 0;
+
     if (buffer == NULL || frame == NULL || len < 6) {
         return false;
     }
@@ -108,539 +138,845 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame)
     frame->slave_addr = buffer[1];
     frame->function_code = buffer[2];
     frame->error_code = buffer[3];
-    frame->checksum = buffer[len-2];
-    
-    /* 计算数据部分长度（排除固定部分） */
-    frame->data_len = len - 6;  /* 总长 - (固定部分：头(1) + 地址(1) + 功能码(1) + 错误码（1） + 校验和(1) + 尾(1) = 6字节) */
+    frame->checksum = buffer[len - 2];
 
-    if (frame->data_len > 0 && frame->data_len <= sizeof(frame->data))
-    {
+    /* 计算数据部分长度（排除固定部分） */
+    frame->data_len =
+        len -
+        6; /* 总长 - (固定部分：头(1) + 地址(1) + 功能码(1) + 错误码（1） + 校验和(1) + 尾(1) = 6字节) */
+
+    if (frame->data_len > 0 && frame->data_len <= sizeof(frame->data)) {
         memcpy(frame->data, &buffer[4], frame->data_len);
-    }
-    else
-    {
+    } else {
         frame->data_len = 0;
     }
-    if(frame->error_code != ACK_SUCCEED)
-    {
+
+    /* 查找对应的电机 */
+    if (frame->slave_addr >= MOTOR_NUM_MAX) {
+        return false;
+    }
+
+    smd_motor_t *motor = smd_motor_list[frame->slave_addr];
+    if (motor == NULL || motor->info == NULL) {
+        return false;
+    }
+    memset(motor->info, 0, SMD_INFO_BUF_SIZE); /* 清空电机信息缓冲区 */
+    motor->valid_mask = 0;        /* 重置有效字段掩码 */
+
+    if (frame->error_code != ACK_SUCCEED) {
         /* 根据错误码处理 */
-        switch(frame->error_code)
-        {
-            case ACK_FRAME_TOO_SHORT: 
-                printf("帧长度不足 \r\n");
+        switch (frame->error_code) {
+            case ACK_FRAME_TOO_SHORT:
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "帧长度不足");
                 break;
-            case ACK_INVALID_HEADER: 
-                printf("帧头有误 \r\n");
+            case ACK_INVALID_HEADER:
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "帧头有误");
                 break;
-            case ACK_INVALID_FOOTER: 
-                printf("帧尾有误 \r\n");
+            case ACK_INVALID_FOOTER:
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "帧尾有误");
                 break;
-            case ACK_CHECKSUM_MISMATCH: 
-                printf("校验和错误 \r\n");
+            case ACK_CHECKSUM_MISMATCH:
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "校验和错误");
                 break;
-            case ACK_UNSUPPORTED_FUNCTION: 
-                printf("不支持的功能码 \r\n");
+            case ACK_UNSUPPORTED_FUNCTION:
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "不支持的功能码");
                 break;
-            case ACK_ERR_ILLEGAL_VAL: 
-                printf("数据不合法 \r\n");
+            case ACK_ERR_ILLEGAL_VAL:
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "数据不合法");
                 break;
-            default : break;
-            
+            default:
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "未知错误码:0x%02X", frame->error_code);
+                break;
         }
+        motor->last_error = frame->error_code; /* 更新电机的last_error字段 */
+        motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_LAST_ERROR);
         return false;
     }
 
     /* 根据功能码处理 */
-    switch(frame->function_code)
-    {
+    switch (frame->function_code) {
         case FCT_CAL_ENCODER:
-            if(frame->data[0] == 1) printf("校准中！ \r\n");
-            else if(frame->data[0] == 2) printf("校准失败 \r\n");
-            else if(frame->data[0] == 3) printf("校准成功 \r\n");
+            if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "校准中！");
+            } else if (frame->data[0] == 2) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "校准失败");
+            } else if (frame->data[0] == 3) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "校准成功");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_RESTART:
-            printf("复位成功\r\n");
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "复位成功");
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_RESET_FACTORY:
-            printf("恢复出厂设置成功，请等待重新识别参数，电机停止则识别完成\r\n");
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "恢复出厂设置成功，请等待重新识别参数，电机停止则识别完成");
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_PARAM_SAVE:
-            printf("参数保存成功\r\n");
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "参数保存成功");
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-                
+
         case FCT_READ_SOFT_HARD_VER:
-            printf("软件版本：V%d.%d, 硬件版本：V%d.%d\r\n",frame->data[0]/10,frame->data[0]%10,frame->data[1]/10,frame->data[1]%10);
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                    "软件版本：V%d.%d, 硬件版本：V%d.%d",
+                    frame->data[0] / 10, frame->data[0] % 10,
+                    frame->data[1] / 10, frame->data[1] % 10);
+                motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
-        case FCT_READ_PSI:
-        {
+
+        case FCT_READ_PSI: {
             float psi = bytes_to_float((uint8_t *)&frame->data[0]);
-            printf("磁链：%.2fmWb\r\n", psi);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "磁链：%.2fmWb", psi);
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
-        case FCT_READ_PHASE_RES_IND:
-        {
+        case FCT_READ_PHASE_RES_IND: {
             float rs = bytes_to_float((uint8_t *)&frame->data[0]);
-            printf("相电阻：%.2fΩ\r\n", rs);
             float ls = bytes_to_float((uint8_t *)&frame->data[4]);
-            printf("相电感：%.2fmH\r\n", ls);
-            break;
-        }
- 
-        case FCT_READ_PHASE_MA:
-        {
-            int16_t iq = (int16_t)((int16_t)frame->data[0]<< 8 | frame->data[1]);
-            printf("相电流：%dmA\r\n", iq);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "相电阻：%.2fΩ, 相电感：%.2fmH", rs, ls);
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
 
-        case FCT_READ_VOL:
-        {
-            float power = bytes_to_float((uint8_t *)&frame->data[0]);
-            printf("总线电压：%.1fV\r\n", power);
+        case FCT_READ_PHASE_MA: {
+            int16_t iq =
+                (int16_t)((int16_t)frame->data[0] << 8 | frame->data[1]);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "相电流：%dmA", iq);
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
-        
-        case FCT_READ_MA_PID:
-        {
+
+        case FCT_READ_VOL: {
+            float power = bytes_to_float((uint8_t *)&frame->data[0]);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "总线电压：%.1fV", power);
+            motor->bus_volt = power;
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_BUS_VOLT);
+            break;
+        }
+
+        case FCT_READ_MA_PID: {
             float q_kp = bytes_to_float((uint8_t *)&frame->data[0]);
             float q_ki = bytes_to_float((uint8_t *)&frame->data[4]);
             float d_kp = bytes_to_float((uint8_t *)&frame->data[8]);
             float d_ki = bytes_to_float((uint8_t *)&frame->data[12]);
-            printf("电流环DQ轴PI参数：q_kp:%.5f, q_ki:%.5f, d_kp:%.5f, d_ki:%.5f\r\n", q_kp, q_ki, d_kp, d_ki);
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                    "电流环DQ轴PI参数：q_kp:%.5f, q_ki:%.5f, d_kp:%.5f, "
+                    "d_ki:%.5f",
+                    q_kp, q_ki, d_kp, d_ki);
+                motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
-        
-        case FCT_READ_SPEED_PID:
-        {
-            uint32_t kp = (uint32_t)((uint32_t)frame->data[0] << 24 | (uint32_t)frame->data[1] << 16 | (uint32_t)frame->data[2] << 8 | (uint32_t)frame->data[3] << 0);
-            uint32_t ki = (uint32_t)((uint32_t)frame->data[4] << 24 | (uint32_t)frame->data[5] << 16 | (uint32_t)frame->data[6] << 8 | (uint32_t)frame->data[7] << 0);
-            uint32_t kd = (uint32_t)((uint32_t)frame->data[8] << 24 | (uint32_t)frame->data[9] << 16 | (uint32_t)frame->data[10] << 8 | (uint32_t)frame->data[11] << 0);
-            printf("速度环PID参数：kp:%d, ki:%d, kd:%d\r\n", kp, ki, kd);
+
+        case FCT_READ_SPEED_PID: {
+            uint32_t kp = (uint32_t)((uint32_t)frame->data[0] << 24 |
+                                     (uint32_t)frame->data[1] << 16 |
+                                     (uint32_t)frame->data[2] << 8 |
+                                     (uint32_t)frame->data[3] << 0);
+            uint32_t ki = (uint32_t)((uint32_t)frame->data[4] << 24 |
+                                     (uint32_t)frame->data[5] << 16 |
+                                     (uint32_t)frame->data[6] << 8 |
+                                     (uint32_t)frame->data[7] << 0);
+            uint32_t kd = (uint32_t)((uint32_t)frame->data[8] << 24 |
+                                     (uint32_t)frame->data[9] << 16 |
+                                     (uint32_t)frame->data[10] << 8 |
+                                     (uint32_t)frame->data[11] << 0);
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                    "速度环PID参数：kp:%lu, ki:%lu, kd:%lu", (unsigned long)kp,
+                    (unsigned long)ki, (unsigned long)kd);
+                motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
-        
-        case FCT_READ_POS_PID:
-        {
-            uint32_t kp = (uint32_t)((uint32_t)frame->data[0] << 24 | (uint32_t)frame->data[1] << 16 | (uint32_t)frame->data[2] << 8 | (uint32_t)frame->data[3] << 0);
-            uint32_t ki = (uint32_t)((uint32_t)frame->data[4] << 24 | (uint32_t)frame->data[5] << 16 | (uint32_t)frame->data[6] << 8 | (uint32_t)frame->data[7] << 0);
-            uint32_t kd = (uint32_t)((uint32_t)frame->data[8] << 24 | (uint32_t)frame->data[9] << 16 | (uint32_t)frame->data[10] << 8 | (uint32_t)frame->data[11] << 0);
-            printf("位置环PID参数：kp:%d, ki:%d, kd:%d\r\n", kp, ki, kd);
+
+        case FCT_READ_POS_PID: {
+            uint32_t kp = (uint32_t)((uint32_t)frame->data[0] << 24 |
+                                     (uint32_t)frame->data[1] << 16 |
+                                     (uint32_t)frame->data[2] << 8 |
+                                     (uint32_t)frame->data[3] << 0);
+            uint32_t ki = (uint32_t)((uint32_t)frame->data[4] << 24 |
+                                     (uint32_t)frame->data[5] << 16 |
+                                     (uint32_t)frame->data[6] << 8 |
+                                     (uint32_t)frame->data[7] << 0);
+            uint32_t kd = (uint32_t)((uint32_t)frame->data[8] << 24 |
+                                     (uint32_t)frame->data[9] << 16 |
+                                     (uint32_t)frame->data[10] << 8 |
+                                     (uint32_t)frame->data[11] << 0);
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                    "位置环PID参数：kp:%lu, ki:%lu, kd:%lu", (unsigned long)kp,
+                    (unsigned long)ki, (unsigned long)kd);
+                motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
-        case FCT_READ_TOTAL_PULSE:
-        {
-            int32_t pulse_cnt = (int32_t)((int32_t)frame->data[0] << 24 | (int32_t)frame->data[1] << 16 | (int32_t)frame->data[2] << 8 | (int32_t)frame->data[3] << 0);
-            printf("累计脉冲数：%d\r\n", pulse_cnt);
+        case FCT_READ_TOTAL_PULSE: {
+            int32_t pulse_cnt = (int32_t)((int32_t)frame->data[0] << 24 |
+                                          (int32_t)frame->data[1] << 16 |
+                                          (int32_t)frame->data[2] << 8 |
+                                          (int32_t)frame->data[3] << 0);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "累计脉冲数：%ld",
+                     (long)pulse_cnt);
+            motor->pulse_cnt = pulse_cnt; /* 更新电机的pulse_cnt字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_PULSE_CNT);
             break;
         }
-        
-        case FCT_READ_ROTATE_SPEED:
-        {
-            int16_t rpm = (int16_t)((int16_t)frame->data[0] << 8 | (int16_t)frame->data[1] << 0);
-            printf("实时转速：%dRPM\r\n", rpm);
+
+        case FCT_READ_ROTATE_SPEED: {
+            int16_t rpm = (int16_t)((int16_t)frame->data[0] << 8 |
+                                    (int16_t)frame->data[1] << 0);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "实时转速：%dRPM", rpm);
+            motor->speed_rpm = rpm; /* 更新电机的speed_rpm字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_SPEED_RPM);
             break;
         }
-        
-        case FCT_READ_POS:
-        {
-            int32_t pos = (int32_t)((int32_t)frame->data[0] << 24 | (int32_t)frame->data[1] << 16 | (int32_t)frame->data[2] << 8 | (int32_t)frame->data[3] << 0);
-            printf("实时位置（51200为一圈）：%d\r\n", pos);
+
+        case FCT_READ_POS: {
+            int32_t pos = (int32_t)((int32_t)frame->data[0] << 24 |
+                                    (int32_t)frame->data[1] << 16 |
+                                    (int32_t)frame->data[2] << 8 |
+                                    (int32_t)frame->data[3] << 0);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "实时位置（51200为一圈）：%ld", (long)pos);
+            motor->real_pos = pos; /* 更新电机的real_pos字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_REAL_POS);
             break;
         }
-        
-        case FCT_READ_POS_ERROR:
-        {
-            int32_t pos_err = (int32_t)((int32_t)frame->data[0] << 24 | (int32_t)frame->data[1] << 16 | (int32_t)frame->data[2] << 8 | (int32_t)frame->data[3] << 0);
-            printf("位置误差（51200为一圈）：%d\r\n", pos_err);
+
+        case FCT_READ_POS_ERROR: {
+            int32_t pos_err = (int32_t)((int32_t)frame->data[0] << 24 |
+                                        (int32_t)frame->data[1] << 16 |
+                                        (int32_t)frame->data[2] << 8 |
+                                        (int32_t)frame->data[3] << 0);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "位置误差(51200=1圈): %ld", (long)pos_err);
+            motor->pos_err = pos_err; /* 更新电机的pos_err字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_POS_ERR);
             break;
         }
-        
-        case FCT_READ_MOTOR_STA:
-        {
-            if(frame->data[0] == 0) printf("电机状态：空闲态\r\n");
-            else if(frame->data[0] == 1) printf("电机状态：已完成\r\n");
-            else if(frame->data[0] == 2) printf("电机状态：正在运行\r\n");
-            else if(frame->data[0] == 3) printf("电机状态：过载\r\n");
-            else if(frame->data[0] == 4) printf("电机状态：堵转\r\n");
-            else if(frame->data[0] == 5) printf("电机状态：欠压\r\n");            
+
+        case FCT_READ_MOTOR_STA: {
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "电机状态：空闲态");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "电机状态：已完成");
+            } else if (frame->data[0] == 2) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "电机状态：正在运行");
+            } else if (frame->data[0] == 3) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "电机状态：过载");
+            } else if (frame->data[0] == 4) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "电机状态：堵转");
+            } else if (frame->data[0] == 5) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "电机状态：欠压");
+            }
+            motor->motor_sta = frame->data[0]; /* 更新电机的motor_sta字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_MOTOR_STA);
             break;
         }
-        
-        case FCT_READ_CLOG_FLAG:
-        {
-            if(frame->data[0] == 0) printf("未堵转\r\n");
-            else if(frame->data[0] == 1) printf("堵转\r\n");           
+
+        case FCT_READ_CLOG_FLAG: {
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "未堵转");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "堵转");
+            }
+            motor->clog_flag = frame->data[0]; /* 更新电机的clog_flag字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_CLOG_FLAG);
             break;
         }
-        
-        case FCT_READ_CLOG_CUR:
-        {
-            int16_t stall_ma = (int16_t)((int16_t)frame->data[0]<< 8 | (int16_t)frame->data[1] << 0);
-            printf("堵转电流：%dmA\r\n", stall_ma);
+
+        case FCT_READ_CLOG_CUR: {
+            int16_t stall_ma = (int16_t)((int16_t)frame->data[0] << 8 |
+                                         (int16_t)frame->data[1] << 0);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "堵转电流：%dmA",
+                     stall_ma);
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
-        
-        case FCT_READ_ENABLE_STA:
-        {
-            if(frame->data[0] == 0) printf("使能\r\n");
-            else if(frame->data[0] == 1) printf("失能\r\n");
+
+        case FCT_READ_ENABLE_STA: {
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "使能");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "失能");
+            }
+            motor->enable_sta = frame->data[0]; /* 更新电机的enable_sta字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_ENABLE_STA);
             break;
         }
-        
-        case FCT_READ_ARRIVED_STA:
-        {
-            if(frame->data[0] == 0) printf("未到位\r\n");
-            else if(frame->data[0] == 1) printf("到位\r\n");
+
+        case FCT_READ_ARRIVED_STA: {
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "未到位");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "到位");
+            }
+            motor->arrived_sta = frame->data[0]; /* 更新电机的arrived_sta字段 */
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_ARRIVED_STA);
             break;
         }
-        
-        case FCT_READ_SYS_PARAM:
-        {
+
+        case FCT_READ_SYS_PARAM: {
             float power = bytes_to_float((uint8_t *)&frame->data[0]);
-            printf("总线电压：%.1fV\r\n", power);
-            
-            int16_t iq = (int16_t)((int16_t)frame->data[4] << 8  | (int16_t)frame->data[5] << 0);
-            printf("相电流：%dmA\r\n", iq);
-            
+            int16_t iq = (int16_t)((int16_t)frame->data[4] << 8 |
+                                   (int16_t)frame->data[5] << 0);
             float psi = bytes_to_float((uint8_t *)&frame->data[6]);
-            printf("磁链：%.2fmWb\r\n", psi);
-            
             float rs = bytes_to_float((uint8_t *)&frame->data[10]);
-            printf("相电阻：%.2fΩ\r\n", rs);
-            
             float ls = bytes_to_float((uint8_t *)&frame->data[14]);
-            printf("相电感：%.2fmH\r\n", ls);
-            
-            int16_t rpm = (int16_t)((int16_t)frame->data[18] << 8 | (int16_t)frame->data[19] << 0);
-            printf("实时转速：%dRPM\r\n", rpm);
-            
-            int32_t pos_tar = (int32_t)((int32_t)frame->data[20] << 24 | (int32_t)frame->data[21] << 16 | (int32_t)frame->data[22] << 8 | (int32_t)frame->data[23] << 0);
-            printf("目标位置（51200为一圈）：%d\r\n", pos_tar);
-            
-            int32_t pos = (int32_t)((int32_t)frame->data[24] << 24 | (int32_t)frame->data[25] << 16 | (int32_t)frame->data[26] << 8 | (int32_t)frame->data[27] << 0);
-            printf("实时位置（51200为一圈）：%d\r\n", pos);
-            
-            int32_t pos_err = (int32_t)((int32_t)frame->data[28] << 24 | (int32_t)frame->data[29] << 16 | (int32_t)frame->data[30] << 8 | (int32_t)frame->data[31] << 0);
-            printf("位置误差（51200为一圈）：%d\r\n", pos_err);
-            
-            int32_t pulse_cnt = (int32_t)((int32_t)frame->data[32] << 24 | (int32_t)frame->data[33] << 16 | (int32_t)frame->data[34] << 8 | (int32_t)frame->data[35] << 0);
-            printf("累计脉冲数：%d\r\n", pulse_cnt);
-            
-            if(frame->data[36]) printf("电机失能\r\n");
-            else printf("电机使能\r\n");
-            
-            if(frame->data[37]) printf("电机到位\r\n");
-            else printf("电机未到位\r\n");
-            
-            if(frame->data[38]) printf("电机堵转\r\n");
-            else printf("电机未堵转\r\n");
-            
-            if(frame->data[39]) printf("分组模式（控制多机）\r\n");
-            else printf("从机模式（控制单机）\r\n");
-            
+            int16_t rpm = (int16_t)((int16_t)frame->data[18] << 8 |
+                                    (int16_t)frame->data[19] << 0);
+            int32_t pos_tar = (int32_t)((int32_t)frame->data[20] << 24 |
+                                        (int32_t)frame->data[21] << 16 |
+                                        (int32_t)frame->data[22] << 8 |
+                                        (int32_t)frame->data[23] << 0);
+            int32_t pos = (int32_t)((int32_t)frame->data[24] << 24 |
+                                    (int32_t)frame->data[25] << 16 |
+                                    (int32_t)frame->data[26] << 8 |
+                                    (int32_t)frame->data[27] << 0);
+            int32_t pos_err = (int32_t)((int32_t)frame->data[28] << 24 |
+                                        (int32_t)frame->data[29] << 16 |
+                                        (int32_t)frame->data[30] << 8 |
+                                        (int32_t)frame->data[31] << 0);
+            int32_t pulse_cnt = (int32_t)((int32_t)frame->data[32] << 24 |
+                                          (int32_t)frame->data[33] << 16 |
+                                          (int32_t)frame->data[34] << 8 |
+                                          (int32_t)frame->data[35] << 0);
+
+            motor->bus_volt = power;
+            motor->speed_rpm = rpm;
+            motor->target_pos = pos_tar;
+            motor->real_pos = pos;
+            motor->pos_err = pos_err;
+            motor->pulse_cnt = pulse_cnt;
+            motor->enable_sta = frame->data[36] ? 1 : 0;
+            motor->arrived_sta = frame->data[37] ? 1 : 0;
+            motor->clog_flag = frame->data[38] ? 1 : 0;
+
+            off += (size_t)snprintf((char *)motor->info + off,
+                                    SMD_INFO_BUF_SIZE - off,
+                                    "总线电压:%.1fV, 相电流:%dmA, 磁链:%.2fmWb, 相电阻:%.2fΩ, 相电感:%.2fmH\n",
+                                    power, iq, psi, rs, ls);
+            if (off < SMD_INFO_BUF_SIZE) {
+                off += (size_t)snprintf((char *)motor->info + off,
+                                        SMD_INFO_BUF_SIZE - off,
+                                        "实时转速:%dRPM, 目标位置:%ld, 实时位置:%ld, 位置误差:%ld, 累计脉冲:%ld\n",
+                                        rpm, (long)pos_tar, (long)pos,
+                                        (long)pos_err, (long)pulse_cnt);
+            }
+            if (off < SMD_INFO_BUF_SIZE) {
+                (void)snprintf((char *)motor->info + off,
+                               SMD_INFO_BUF_SIZE - off,
+                               "电机%s, %s, %s, %s",
+                               frame->data[36] ? "失能" : "使能",
+                               frame->data[37] ? "到位" : "未到位",
+                               frame->data[38] ? "堵转" : "未堵转",
+                               frame->data[39] ? "分组模式" : "从机模式");
+            }
+
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_BUS_VOLT |
+                                  SMD_MASK_SPEED_RPM | SMD_MASK_TARGET_POS |
+                                  SMD_MASK_REAL_POS | SMD_MASK_POS_ERR |
+                                  SMD_MASK_PULSE_CNT | SMD_MASK_ENABLE_STA |
+                                  SMD_MASK_ARRIVED_STA | SMD_MASK_CLOG_FLAG);
+
             break;
         }
-        case FCT_READ_DRIVE_PARAMS:
-        {       
-            if(frame->data[0] == 0) printf("通信位置模式\r\n");
-            else if(frame->data[0] == 1) printf("通信速度模式\r\n");
-            else if(frame->data[0] == 2) printf("通信力矩模式\r\n");
-            else if(frame->data[0] == 3) printf("脉冲模式\r\n");    
-            else if(frame->data[0] == 4) printf("脉宽位置模式\r\n");
-            else if(frame->data[0] == 5) printf("脉宽速度模式\r\n"); 
-            else if(frame->data[0] == 6) printf("脉宽力矩模式\r\n");
-            else if(frame->data[0] == 7) printf("回零模式\r\n");   
-            else if(frame->data[0] == 8) printf("开环速度模式\r\n"); 
-            else if(frame->data[0] == 9) printf("开环位置模式\r\n"); 
-            else if(frame->data[0] == 10) printf("开环脉冲模式\r\n"); 
-            
-            if(frame->data[1]) printf("指令不回响\r\n");
-            else printf("指令正常回响\r\n");
-            
-            uint32_t uart_baud = (uint32_t)((uint32_t)frame->data[2] << 24 | (uint32_t)frame->data[3] << 16 | (uint32_t)frame->data[4] << 8 | (uint32_t)frame->data[5] << 0);
-            printf("串口波特率为：%d\r\n", uart_baud);
-            
-            uint16_t can_baud = (uint16_t)((uint16_t)frame->data[6] << 8 | (uint16_t)frame->data[7] << 0);
-            printf("CAN速率为：%dK\r\n", can_baud);
-            
-            if(frame->data[8]) printf("DIR低电平正转\r\n");
-            else printf("DIR高电平正转\r\n");
-            
-            if(frame->data[9] == 0) printf("EN脚低电平有效\r\n");
-            else if(frame->data[9] == 1) printf("EN脚高电平有效\r\n");
-            else if(frame->data[9] == 2) printf("EN保持有效\r\n");
-            
-            uint16_t step = (uint16_t)((uint16_t)frame->data[10] << 8 | (uint16_t)frame->data[11] << 0);
-            printf("细分为：%d\r\n", step);
-            
-            int16_t pos_ma = (int16_t)((int32_t)frame->data[12] << 8 | (int32_t)frame->data[13] << 0);
-            printf("位置环最大力矩：%d\r\n", pos_ma);
-            
-            uint32_t l_kp = (uint32_t)((uint32_t)frame->data[14] << 24 | (uint32_t)frame->data[15] << 16 | (uint32_t)frame->data[16] << 8 | (uint32_t)frame->data[17] << 0);
-            uint32_t l_ki = (uint32_t)((uint32_t)frame->data[18] << 24 | (uint32_t)frame->data[19] << 16 | (uint32_t)frame->data[20] << 8 | (uint32_t)frame->data[21] << 0);
-            uint32_t l_kd = (uint32_t)((uint32_t)frame->data[22] << 24 | (uint32_t)frame->data[23] << 16 | (uint32_t)frame->data[24] << 8 | (uint32_t)frame->data[25] << 0);
-            printf("位置环PID参数：kp:%d, ki:%d, kd:%d\r\n", l_kp, l_ki, l_kd);
-                       
-            uint16_t stall_ma = (int16_t)((int16_t)frame->data[26] << 8 | (int16_t)frame->data[27] << 0);
-            printf("堵转电流为：%dmA\r\n", stall_ma);
-            
-            if(frame->data[28]) printf("开启堵转保护功能\r\n");
-            else printf("关闭堵转保护功能\r\n");
-            
-            if(frame->data[29]) printf("按键上锁\r\n");
-            else printf("按键解锁\r\n");
-            
-            uint32_t s_kp = (uint32_t)((uint32_t)frame->data[30] << 24 | (uint32_t)frame->data[31] << 16 | (uint32_t)frame->data[32] << 8 | (uint32_t)frame->data[33] << 0);
-            uint32_t s_ki = (uint32_t)((uint32_t)frame->data[34] << 24 | (uint32_t)frame->data[35] << 16 | (uint32_t)frame->data[36] << 8 | (uint32_t)frame->data[37] << 0);
-            uint32_t s_kd = (uint32_t)((uint32_t)frame->data[38] << 24 | (uint32_t)frame->data[39] << 16 | (uint32_t)frame->data[40] << 8 | (uint32_t)frame->data[41] << 0);
-            printf("速度环PID参数：kp:%d, ki:%d, kd:%d\r\n", s_kp, s_ki, s_kd);
-            
-            if(frame->data[42]) printf("开启自动熄屏\r\n");
-            else printf("关闭自动熄屏\r\n");
-            
-            if(frame->data[43]) printf("IO启停高电平启动\r\n");
-            else printf("IO启停低电平启动\r\n");
+        case FCT_READ_DRIVE_PARAMS: {
+            const char *mode_str = "未知模式";
+            uint32_t uart_baud = (uint32_t)((uint32_t)frame->data[2] << 24 |
+                                            (uint32_t)frame->data[3] << 16 |
+                                            (uint32_t)frame->data[4] << 8 |
+                                            (uint32_t)frame->data[5] << 0);
+            uint16_t can_baud = (uint16_t)((uint16_t)frame->data[6] << 8 |
+                                           (uint16_t)frame->data[7] << 0);
+            uint16_t step = (uint16_t)((uint16_t)frame->data[10] << 8 |
+                                       (uint16_t)frame->data[11] << 0);
+            int16_t pos_ma = (int16_t)((int32_t)frame->data[12] << 8 |
+                                       (int32_t)frame->data[13] << 0);
+            uint16_t stall_ma = (int16_t)((int16_t)frame->data[26] << 8 |
+                                          (int16_t)frame->data[27] << 0);
+
+            switch (frame->data[0]) {
+                case 0:
+                    mode_str = "通信位置模式";
+                    break;
+                case 1:
+                    mode_str = "通信速度模式";
+                    break;
+                case 2:
+                    mode_str = "通信力矩模式";
+                    break;
+                case 3:
+                    mode_str = "脉冲模式";
+                    break;
+                case 4:
+                    mode_str = "脉宽位置模式";
+                    break;
+                case 5:
+                    mode_str = "脉宽速度模式";
+                    break;
+                case 6:
+                    mode_str = "脉宽力矩模式";
+                    break;
+                case 7:
+                    mode_str = "回零模式";
+                    break;
+                case 8:
+                    mode_str = "开环速度模式";
+                    break;
+                case 9:
+                    mode_str = "开环位置模式";
+                    break;
+                case 10:
+                    mode_str = "开环脉冲模式";
+                    break;
+                default:
+                    break;
+            }
+
+            uint32_t s_kp = (uint32_t)((uint32_t)frame->data[30] << 24 |
+                                       (uint32_t)frame->data[31] << 16 |
+                                       (uint32_t)frame->data[32] << 8 |
+                                       (uint32_t)frame->data[33] << 0);
+            uint32_t s_ki = (uint32_t)((uint32_t)frame->data[34] << 24 |
+                                       (uint32_t)frame->data[35] << 16 |
+                                       (uint32_t)frame->data[36] << 8 |
+                                       (uint32_t)frame->data[37] << 0);
+            uint32_t s_kd = (uint32_t)((uint32_t)frame->data[38] << 24 |
+                                       (uint32_t)frame->data[39] << 16 |
+                                       (uint32_t)frame->data[40] << 8 |
+                                       (uint32_t)frame->data[41] << 0);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "模式:%s, 回响:%s, UART:%lu, CAN:%uK, DIR:%s, EN:%u, 细分:%u, 位置环力矩:%d, 堵转电流:%u, 速度环PID:%lu/%lu/%lu, 自动熄屏:%s, IO启停:%s",
+                     mode_str, frame->data[1] ? "不回响" : "回响",
+                     (unsigned long)uart_baud, (unsigned int)can_baud,
+                     frame->data[8] ? "低电平正转" : "高电平正转",
+                     (unsigned int)frame->data[9], (unsigned int)step, pos_ma,
+                     (unsigned int)stall_ma, (unsigned long)s_kp,
+                     (unsigned long)s_ki, (unsigned long)s_kd,
+                     frame->data[42] ? "开启" : "关闭",
+                     frame->data[43] ? "高电平启动" : "低电平启动");
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
         }
 
         case FCT_SET_SLAVE_ADD:
-            printf("成功设置从机地址：0x%x\r\n",frame->data[0]);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "成功设置从机地址：0x%02X", frame->data[0]);
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_GROUP_ADD:
-            printf("成功设置分组地址：0x%x\r\n",frame->data[0]);
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "成功设置分组地址：0x%02X", frame->data[0]);
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_MODE:
-            if(frame->data[0] == 0) printf("成功设置电机工作模式为：通信位置模式\r\n");
-            else if(frame->data[0] == 1) printf("成功设置电机工作模式为：通信速度模式\r\n");
-            else if(frame->data[0] == 2) printf("成功设置电机工作模式为：通信力矩模式\r\n");
-            else if(frame->data[0] == 3) printf("成功设置电机工作模式为：脉冲模式\r\n");    
-            else if(frame->data[0] == 4) printf("成功设置电机工作模式为：脉宽位置模式\r\n");
-            else if(frame->data[0] == 5) printf("成功设置电机工作模式为：脉宽速度模式\r\n"); 
-            else if(frame->data[0] == 6) printf("成功设置电机工作模式为：脉宽力矩模式\r\n");
-            else if(frame->data[0] == 7) printf("成功设置电机工作模式为：回零模式\r\n");
-            else if(frame->data[0] == 8) printf("成功设置电机工作模式为：开环速度模式\r\n"); 
-            else if(frame->data[0] == 9) printf("成功设置电机工作模式为：开环位置模式\r\n"); 
-            else if(frame->data[0] == 10) printf("成功设置电机工作模式为：开环脉冲模式\r\n"); 
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：通信位置模式");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：通信速度模式");
+            } else if (frame->data[0] == 2) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：通信力矩模式");
+            } else if (frame->data[0] == 3) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：脉冲模式");
+            } else if (frame->data[0] == 4) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：脉宽位置模式");
+            } else if (frame->data[0] == 5) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：脉宽速度模式");
+            } else if (frame->data[0] == 6) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：脉宽力矩模式");
+            } else if (frame->data[0] == 7) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：回零模式");
+            } else if (frame->data[0] == 8) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：开环速度模式");
+            } else if (frame->data[0] == 9) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：开环位置模式");
+            } else if (frame->data[0] == 10) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置电机工作模式为：开环脉冲模式");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_POS_PID:
-            printf("成功设置位置环PID参数：P:%d,I:%d,D:%d\r\n",  (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 | frame->data[2] << 8 | frame->data[3] << 0),\
-                                                                (uint32_t)(frame->data[4] << 24 | frame->data[5] << 16 | frame->data[6] << 8 | frame->data[7] << 0),\
-                                                                (uint32_t)(frame->data[8] << 24 | frame->data[9] << 16 | frame->data[10] << 8 | frame->data[11] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置位置环PID参数：P:%lu,I:%lu,D:%lu",
+                   (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
+                              frame->data[2] << 8 | frame->data[3] << 0),
+                   (uint32_t)(frame->data[4] << 24 | frame->data[5] << 16 |
+                              frame->data[6] << 8 | frame->data[7] << 0),
+                   (uint32_t)(frame->data[8] << 24 | frame->data[9] << 16 |
+                              frame->data[10] << 8 | frame->data[11] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-                
+
         case FCT_SET_POS_TORQUE:
-            printf("成功设置位置环力矩：%dmA\r\n",(int16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置位置环力矩：%dmA",
+                   (int16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
 
         case FCT_SET_STEP:
-            printf("成功设置细分为：%d\r\n",(uint16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置细分为：%u",
+                   (uint16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_MA:
-            printf("成功设置目标电流为：%d\r\n",(int16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置目标电流为：%dmA",
+                   (int16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_UART_BAUD:
-            printf("成功设置串口波特率为：%d\r\n",(uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 | frame->data[2] << 8 | frame->data[3] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置串口波特率为：%lu",
+                   (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
+                              frame->data[2] << 8 | frame->data[3] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_CAN_BAUD:
-            printf("成功设置CAN波特率为：%dK\r\n",(uint16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置CAN波特率为：%uK",
+                   (uint16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-                
+
         case FCT_SET_MODBUS:
-            if(frame->data[0] == 0) printf("使用自定义协议\r\n");
-            else if(frame->data[0] == 1) printf("使用modbus协议\r\n");
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "使用自定义协议");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "使用modbus协议");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_CLOG_PRO:
-            if(frame->data[0] == 0) printf("成功关闭堵转保护\r\n");
-            else if(frame->data[0] == 1) printf("成功开启堵转保护\r\n");
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功关闭堵转保护");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功开启堵转保护");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
-        
+
         case FCT_SET_CLOG_CUR:
-            printf("成功设置堵转电流为：%d\r\n",(int16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置堵转电流为：%dmA",
+                   (int16_t)(frame->data[0] << 8 | frame->data[1] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
 
         case FCT_SET_CAN_ID:
-            printf("设置CAN发送ID为：0x%x\r\n",(uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 | frame->data[2] << 8 | frame->data[3] << 0));
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "设置CAN发送ID为：0x%08lX",
+                   (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
+                              frame->data[2] << 8 | frame->data[3] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
 
         case FCT_SET_DIR_LEVEL:
-            if(frame->data[0] == 0) printf("成功设置旋转方向为：高电平正转\r\n");
-            else if(frame->data[0] == 1) printf("成功设置旋转方向为：高电平反转\r\n");
-            break;
-        
-        case FCT_SET_EN_LEVEL:
-            if(frame->data[0] == 0) printf("成功设置EN脚低电平有效\r\n");
-            else if(frame->data[0] == 1) printf("成功设置EN脚高电平有效\r\n");
-            else if(frame->data[0] == 2) printf("成功设置EN脚保持有效\r\n");
-            break;
-        
-        case FCT_SET_KEY_LOCK:
-            if(frame->data[0] == 0) printf("成功解锁按键\r\n");
-            else if(frame->data[0] == 1) printf("成功上锁按键\r\n");
-            break;
-        
-        case FCT_SET_AUTO_NOT_DISPLAY:
-            if(frame->data[0] == 0) printf("成功关闭自动熄屏\r\n");
-            else if(frame->data[0] == 1) printf("成功开启自动熄屏\r\n");
-            break;
-        
-        case FCT_SET_IO_START_LEVEL:
-            if(frame->data[0] == 0) printf("设置IO低电平启动\r\n");
-            else if(frame->data[0] == 1) printf("设置IO高电平启动\r\n");
-            break;
-        
-        case FCT_SET_SPEED_PID:
-            printf("成功设置速度环PID参数：P:%d,I:%d,D:%d\r\n",  (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 | frame->data[2] << 8 | frame->data[3] << 0),\
-                                                                (uint32_t)(frame->data[4] << 24 | frame->data[5] << 16 | frame->data[6] << 8 | frame->data[7] << 0),\
-                                                                (uint32_t)(frame->data[8] << 24 | frame->data[9] << 16 | frame->data[10] << 8 | frame->data[11] << 0));
-            break;
-        
-        case FCT_ORIGIN_SET_LEFT_POS:
-            printf("成功设置左限位原点为：%d\r\n",(int32_t)(frame->data[0] << 24 | frame->data[1] << 16 | frame->data[2] << 8 | frame->data[3] << 0));
-            break;
-        
-        case FCT_ORIGIN_LIMIT_HOME:
-            if(frame->data[0] == 0) printf("无限位找零\r\n");
-            else if(frame->data[0] == 1) printf("有限位找零\r\n");
-            break;
-        
-        case FCT_ORIGIN_TRIG:
-            if(frame->data[0] == 0) printf("单圈回零\r\n");
-            else if(frame->data[0] == 1) printf("就近回零\r\n");
-            else if(frame->data[0] == 2) printf("多圈回零\r\n");
-            break;
-         
-        case FCT_ORIGIN_BREAK:
-            printf("强制退出回零操作成功\r\n");
-            break;
-        
-        case FCT_ORIGIN_READ_PARAMS:
-            if(frame->data[0] == 0) printf("上电不自动回零\r\n");
-            else if(frame->data[0] == 1) printf("上电自动回零\r\n");
-            
-            if(frame->data[1] == 0) printf("空闲态\r\n");
-            else if(frame->data[1] == 1) printf("找零点中\r\n");
-            else if(frame->data[1] == 2) printf("成功找到零点\r\n");
-            else if(frame->data[1] == 3) printf("错误状态 未找到零点\r\n");
-        
-            printf("无限位碰撞到位电流：%d mA\r\n",(int16_t)((frame->data[2] << 8) |frame->data[3]));
-            printf("左限位原点为：%d\r\n",(int32_t)(frame->data[4] << 24 | frame->data[5] << 16 | frame->data[6] << 8 | frame->data[7] << 0));
-            printf("回零超时时间为：%d ms\r\n",(uint32_t)(frame->data[8] << 24 | frame->data[9] << 16 | frame->data[10] << 8 | frame->data[11] << 0));
-            printf("右限位原点为：%d\r\n",(int32_t)(frame->data[12] << 24 | frame->data[13] << 16 | frame->data[14] << 8 | frame->data[15] << 0));
-            if(frame->data[16] == 0) printf("关闭左右限位\r\n");
-            else if(frame->data[16] == 1) printf("开启左右限位\r\n");
-            break;
-        
-        case FCT_ORIGIN_SET_PARAMS:
-            printf("成功设置找零点超时时间为：%d\r\n",(uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 | frame->data[2] << 8 | frame->data[3] << 0));
-            break;
-        
-        case FCT_ORIGIN_READ_STA:
-            if(frame->data[0] == 0) printf("空闲态\r\n");
-            else if(frame->data[0] == 1) printf("找零点中\r\n");
-            else if(frame->data[0] == 2) printf("成功找到零点\r\n");
-            else if(frame->data[0] == 3) printf("错误状态 未找到零点\r\n");
-            break;
-        
-        case FCT_ORIGIN_AOTO_ZERO:
-            if(frame->data[0] == 0) printf("上电不自动回零\r\n");
-            else if(frame->data[0] == 1) printf("上电自动回零\r\n");
-            break;
-        
-        case FCT_ORIGIN_SET_RIGHT_POS:
-            printf("成功设置右限位原点为：%d\r\n",(int32_t)(frame->data[0] << 24 | frame->data[1] << 16 | frame->data[2] << 8 | frame->data[3] << 0));
-            break;
-        
-        case FCT_ORIGIN_SWITCH:
-            if(frame->data[0] == 0) printf("关闭左右限位\r\n");
-            else if(frame->data[0] == 1) printf("开启左右限位\r\n");
-            break;
-        
-        case FCT_TORQUE_MODE:
-            printf("设置力矩模式成功\r\n");
-            break;
-        
-        case FCT_SPEED_MODE:
-            printf("设置速度模式成功\r\n");
-            break;
-        
-        case FCT_POS_MODE:
-            printf("设置绝对位置模式成功\r\n");
-            break;
-        
-        case FCT_POS_REL_MODE:
-            printf("设置相对位置模式成功\r\n");
-            break;
-                
-        case FCT_PULSES_MODE:
-            printf("设置脉冲模式成功\r\n");
-            break;
-        
-        case FCT_PULSE_WIDTH_POS_MODE:
-            printf("设置脉宽位置模式成功\r\n");
-            break;
-        
-        case FCT_PULSE_WIDTH_MA_MODE:
-             printf("设置脉宽力矩模式成功\r\n");
-            break;
-        
-        case FCT_PULSE_WIDTH_SPEED_MODE:
-             printf("设置脉宽速度模式成功\r\n");
-            break;
-        
-        case FCT_OL_SPEED_MODE:
-            printf("设置开环速度模式成功\r\n");
-            break;
-        
-        case FCT_OL_POS_MODE:
-            printf("设置开环绝对位置模式成功\r\n");
-            break;
-        
-        case FCT_OL_POS_REL_MODE:
-            printf("设置开环相对位置模式成功\r\n");
-            break;
-                
-        case FCT_OL_PULSES_MODE:
-            printf("设置开环脉冲模式成功\r\n");
-            break;
-        
-        case FCT_IO_RUN_MODE:
-            printf("设置IO启停模式成功\r\n");
-            break;
-        
-        case FCT_ANGLE_ZERO:
-            printf("清除当前位置成功\r\n");
-            break;
-        
-        case FCT_CLEAR_CLOG_PRO:
-            printf("成功清除堵转状态\r\n");
-            break;
-        
-        case FCT_MOTOR_ENABLE:
-            if(frame->data[0] == 0) printf("使能电机\r\n");
-            else if(frame->data[0] == 1) printf("失能电机\r\n");
-            break;
-        
-        case FCT_CLEAR_STATE:
-            printf("成功清除电机状态（刹车、堵转、失能）\r\n");
-            break;
-        
-        case FCT_STOP_NOW:
-            printf("成功刹停\r\n");
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置旋转方向为：高电平正转");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置旋转方向为：高电平反转");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
             break;
 
-        default: 
-            
+        case FCT_SET_EN_LEVEL:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置EN脚低电平有效");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置EN脚高电平有效");
+            } else if (frame->data[0] == 2) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功设置EN脚保持有效");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_SET_KEY_LOCK:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功解锁按键");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功上锁按键");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_SET_AUTO_NOT_DISPLAY:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功关闭自动熄屏");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "成功开启自动熄屏");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_SET_IO_START_LEVEL:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "设置IO低电平启动");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "设置IO高电平启动");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_SET_SPEED_PID:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置速度环PID参数：P:%lu,I:%lu,D:%lu",
+                   (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
+                              frame->data[2] << 8 | frame->data[3] << 0),
+                   (uint32_t)(frame->data[4] << 24 | frame->data[5] << 16 |
+                              frame->data[6] << 8 | frame->data[7] << 0),
+                   (uint32_t)(frame->data[8] << 24 | frame->data[9] << 16 |
+                              frame->data[10] << 8 | frame->data[11] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_SET_LEFT_POS:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置左限位原点为：%ld",
+                   (int32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
+                             frame->data[2] << 8 | frame->data[3] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_LIMIT_HOME:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "无限位找零");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "有限位找零");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_TRIG:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "单圈回零");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "就近回零");
+            } else if (frame->data[0] == 2) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "多圈回零");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_BREAK:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "强制退出回零操作成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_READ_PARAMS:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "上电回零:%s, 回零状态:%u, 碰撞电流:%d mA, 左原点:%ld, 回零超时:%lu ms, 右原点:%ld, 限位开关:%s",
+                     frame->data[0] ? "自动" : "不自动",
+                     (unsigned int)frame->data[1],
+                     (int16_t)((frame->data[2] << 8) | frame->data[3]),
+                     (long)((int32_t)(frame->data[4] << 24 | frame->data[5] << 16 |
+                                      frame->data[6] << 8 | frame->data[7] << 0)),
+                     (unsigned long)((uint32_t)(frame->data[8] << 24 | frame->data[9] << 16 |
+                                                frame->data[10] << 8 | frame->data[11] << 0)),
+                     (long)((int32_t)(frame->data[12] << 24 | frame->data[13] << 16 |
+                                      frame->data[14] << 8 | frame->data[15] << 0)),
+                     frame->data[16] ? "开启" : "关闭");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_SET_PARAMS:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置找零点超时时间为：%lu",
+                   (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
+                              frame->data[2] << 8 | frame->data[3] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_READ_STA:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "空闲态");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "找零点中");
+            } else if (frame->data[0] == 2) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "成功找到零点");
+            } else if (frame->data[0] == 3) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "错误状态 未找到零点");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_AOTO_ZERO:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "上电不自动回零");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                         "上电自动回零");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_SET_RIGHT_POS:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                   "成功设置右限位原点为：%ld",
+                   (int32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
+                             frame->data[2] << 8 | frame->data[3] << 0));
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ORIGIN_SWITCH:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "关闭左右限位");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "开启左右限位");
+            }
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_TORQUE_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "设置力矩模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_SPEED_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "设置速度模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_POS_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "绝对位置模式设置: ok");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_POS_REL_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置相对位置模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_PULSES_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "设置脉冲模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_PULSE_WIDTH_POS_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置脉宽位置模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_PULSE_WIDTH_MA_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置脉宽力矩模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_PULSE_WIDTH_SPEED_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置脉宽速度模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_OL_SPEED_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置开环速度模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_OL_POS_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置开环绝对位置模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_OL_POS_REL_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置开环相对位置模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_OL_PULSES_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置开环脉冲模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_IO_RUN_MODE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "设置IO启停模式成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_ANGLE_ZERO:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "清除当前位置成功");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_CLEAR_CLOG_PRO:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "成功清除堵转状态");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_MOTOR_ENABLE:
+            if (frame->data[0] == 0) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "使能电机");
+            } else if (frame->data[0] == 1) {
+                snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "失能电机");
+            }
+            motor->enable_sta = frame->data[0];
+            motor->valid_mask |= (SMD_MASK_INFO | SMD_MASK_ENABLE_STA);
+            break;
+
+        case FCT_CLEAR_STATE:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
+                     "成功清除电机状态（刹车、堵转、失能）");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        case FCT_STOP_NOW:
+            snprintf((char *)motor->info, SMD_INFO_BUF_SIZE, "成功刹停");
+            motor->valid_mask |= SMD_MASK_INFO;
+            break;
+
+        default:
+
             return false;
     }
     return true;
