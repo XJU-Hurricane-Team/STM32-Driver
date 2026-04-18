@@ -18,7 +18,7 @@
 /******************************************************************************************/
 
 #define RX_BUFFER_SIZE 128
-#define SMD_UART       (&huart2)
+#define SMD_UART       (&huart5)
 
 /******************************************************************************************/
 /* 控制RS485_RE脚, 控制RS485发送/接收状态
@@ -27,8 +27,8 @@
  */
 #define RS485_RE(x)                                                            \
     do {                                                                       \
-        x ? HAL_GPIO_WritePin(RS485_RE_GPIO_Port, RS485_RE_Pin, GPIO_PIN_SET)  \
-          : HAL_GPIO_WritePin(RS485_RE_GPIO_Port, RS485_RE_Pin,                \
+        x ? HAL_GPIO_WritePin(RS485_RE2_GPIO_Port, RS485_RE2_Pin, GPIO_PIN_SET)  \
+          : HAL_GPIO_WritePin(RS485_RE2_GPIO_Port, RS485_RE2_Pin,                \
                               GPIO_PIN_RESET);                                 \
     } while (0)
 
@@ -36,6 +36,6 @@ extern uint8_t g_rx_cmd[RX_BUFFER_SIZE]; /* 存放接收到的指令 */
 
 void smd_usart_send_cmd(uint8_t *data,
                         uint8_t len); /* 串口发送发送多个字节数据 */
-void atk_smd_usart_init(void);
+void smd_usart_recv_init(void);
 
 #endif /* __SMD_USART_H */

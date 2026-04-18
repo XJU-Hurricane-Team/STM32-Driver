@@ -1,32 +1,32 @@
 /**
  * @file unitree_motor.h
- * @author meiwenhuaqingnian, xinglu
+ * @author meiwenhuaqingnian, xinglu,PickingChip
  * @brief GO-M8010-6关节电机驱动 通讯协议&数据包
- * @version 1.2
- * @date 2026-3-22
+ * @version 1.4
+ * @date 2026/4/1
  *
  * @note 输出力矩 ：𝜏 = 𝜏𝑓𝑓 + 𝑘𝑝 × (𝑝𝑑𝑒𝑠 − 𝑝) + 𝑘𝑑 × (𝜔𝑑𝑒𝑠 − 𝜔)
  */
 #ifndef __UNITREE_MOTOR_H
 #define __UNITREE_MOTOR_H
 
-#include "./unitree_motor/crc_ccitt.h"
-#include <stdbool.h>
-#include <CSP_Config.h>
+#include <cubemx.h>
 
-#define RS485_REDE_Pin       GPIO_PIN_12
-#define RS485_REDE_GPIO_Port GPIOA
+#define UNITREE_UART         UART4
+
+// #define RS485_RE1_Pin       GPIO_PIN_14
+// #define RS485_RE1_GPIO_Port GPIOD
 
 // 减速比定义
-#define REDUCTION_RATIO 6.33f
+#define REDUCTION_RATIO      6.33f
 
 /* 需单独初始化配置IO */
 #define RS485_RxMode()                                                         \
-    (HAL_GPIO_WritePin(RS485_REDE_GPIO_Port, RS485_REDE_Pin, GPIO_PIN_RESET))
+    (HAL_GPIO_WritePin(RS485_RE1_GPIO_Port, RS485_RE1_Pin, GPIO_PIN_RESET))
 #define RS485_TxMode()                                                         \
-    (HAL_GPIO_WritePin(RS485_REDE_GPIO_Port, RS485_REDE_Pin, GPIO_PIN_SET))
+    (HAL_GPIO_WritePin(RS485_RE1_GPIO_Port, RS485_RE1_Pin, GPIO_PIN_SET))
 
-#pragma pack(1)
+#pragma pack(1) /* 所有结构体按照1字节对齐 */
 /**
  * @brief 电机模式控制信息
  *
@@ -89,7 +89,7 @@ typedef struct {
 
 } RIS_MotorData_t; // 电机返回数据     16Byte
 
-#pragma pack()
+#pragma pack() /* 所有结构体按照1字节对齐 */
 
 typedef struct {
     unsigned short id;   // 电机ID，15代表广播数据包
@@ -103,31 +103,31 @@ typedef struct {
 } ctrl_param_t;
 
 /**
- * @brief 电机参数结构体 
- * 
+ * @brief 电机参数结构体
+ *
  */
 typedef struct {
-    uint8_t motor_id; // 电机ID
-    uint8_t mode;     // 0:空闲 1:FOC控制 2:电机标定
-    int Temp;         // 温度
-    int MError;       // 错误码
-    float T;          // 当前实际电机输出力矩(电机本身的力矩)(Nm)
-    float W;          // 当前实际电机速度(电机本身的速度)(rad/s)
-    float Pos;        // 当前电机转子位置(rad)
-    float offset_angle;    // 电机上电时角度偏移量
-    int correct;      // 接收数据是否完整(1完整，0不完整)
-    int footForce;    // 足端力传感器原始数值
-    bool got_offset; 
+    uint8_t motor_id;   // 电机ID
+    uint8_t mode;       // 0:空闲 1:FOC控制 2:电机标定
+    int Temp;           // 温度
+    int MError;         // 错误码
+    float T;            // 当前实际电机输出力矩(电机本身的力矩)(Nm)
+    float W;            // 当前实际电机速度(电机本身的速度)(rad/s)
+    float Pos;          // 当前电机转子位置(rad)
+    float offset_angle; // 电机上电时角度偏移量
+    int correct;        // 接收数据是否完整(1完整，0不完整)
+    int footForce;      // 足端力传感器原始数值
+    bool got_offset;
 
+    RIS_ControlData_t *send_data; // 指向发送数据的指针
     uint16_t calc_crc;
     uint32_t bad_msg; // CRC校验错误 数量
 
 } unitree_motor_handle_t;
 
-
 /**
  * @brief 消息结点
- * 
+ *
  */
 typedef struct rs_node {
     void *rs_data; /* 消息结点数据，一般为电机结构体 */
@@ -137,18 +137,17 @@ typedef struct rs_node {
 
 /**
  * @brief hash表
- * 
+ *
  */
 typedef struct {
     rs_node_t **table; /* 桶组 */
-    uint8_t len;
+    uint8_t len;       /* 表长 */
 } table_t;
-
 
 uint8_t unitree_motor_init(unitree_motor_handle_t *motor, uint8_t motor_id,
                            uint8_t mode);
-void unitree_send_data(UART_HandleTypeDef *huart,unitree_motor_handle_t *motor, ctrl_param_t ctrl_param);
-uint8_t unitree_receive_data(UART_HandleTypeDef *huart);
+void unitree_send_data(UART_HandleTypeDef *huart, unitree_motor_handle_t *motor,
+                       ctrl_param_t ctrl_param);
 uint8_t rs_list_init(uint8_t len);
 
 #endif /* __UNITREE_MOTOR_H */

@@ -616,7 +616,7 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
 
         case FCT_SET_POS_PID:
             snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
-                   "成功设置位置环PID参数：P:%lu,I:%lu,D:%lu",
+                   "成功设置位置环PID参数：P:%u,I:%u,D:%u",
                    (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
                               frame->data[2] << 8 | frame->data[3] << 0),
                    (uint32_t)(frame->data[4] << 24 | frame->data[5] << 16 |
@@ -649,7 +649,7 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
 
         case FCT_SET_UART_BAUD:
             snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
-                   "成功设置串口波特率为：%lu",
+                   "成功设置串口波特率为：%u",
                    (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
                               frame->data[2] << 8 | frame->data[3] << 0));
             motor->valid_mask |= SMD_MASK_INFO;
@@ -693,7 +693,7 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
 
         case FCT_SET_CAN_ID:
             snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
-                   "设置CAN发送ID为：0x%08lX",
+                   "设置CAN发送ID为：0x%08X",
                    (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
                               frame->data[2] << 8 | frame->data[3] << 0));
             motor->valid_mask |= SMD_MASK_INFO;
@@ -759,7 +759,7 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
 
         case FCT_SET_SPEED_PID:
             snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
-                   "成功设置速度环PID参数：P:%lu,I:%lu,D:%lu",
+                   "成功设置速度环PID参数：P:%u,I:%u,D:%u",
                    (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
                               frame->data[2] << 8 | frame->data[3] << 0),
                    (uint32_t)(frame->data[4] << 24 | frame->data[5] << 16 |
@@ -771,7 +771,7 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
 
         case FCT_ORIGIN_SET_LEFT_POS:
             snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
-                   "成功设置左限位原点为：%ld",
+                   "成功设置左限位原点为：%d",
                    (int32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
                              frame->data[2] << 8 | frame->data[3] << 0));
             motor->valid_mask |= SMD_MASK_INFO;
@@ -821,7 +821,7 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
 
         case FCT_ORIGIN_SET_PARAMS:
             snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
-                   "成功设置找零点超时时间为：%lu",
+                   "成功设置找零点超时时间为：%u",
                    (uint32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
                               frame->data[2] << 8 | frame->data[3] << 0));
             motor->valid_mask |= SMD_MASK_INFO;
@@ -854,7 +854,7 @@ bool serial_frame_process(uint8_t *buffer, uint8_t len, SERIAL_FRAME *frame) {
 
         case FCT_ORIGIN_SET_RIGHT_POS:
             snprintf((char *)motor->info, SMD_INFO_BUF_SIZE,
-                   "成功设置右限位原点为：%ld",
+                   "成功设置右限位原点为：%d",
                    (int32_t)(frame->data[0] << 24 | frame->data[1] << 16 |
                              frame->data[2] << 8 | frame->data[3] << 0));
             motor->valid_mask |= SMD_MASK_INFO;
