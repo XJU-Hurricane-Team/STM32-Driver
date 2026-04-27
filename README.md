@@ -78,3 +78,20 @@
 | iic     | 软件iic  | 是       |
 | MCP2515 | SPI转CAN | 是       |
 |         |          |          |
+
+
+
+### `Utils`文件夹
+
+| 模块               | 说明                   | 是否验证 |
+| ------------------ | ---------------------- | -------- |
+| a_star             | A*路径规划算法         | 否       |
+| bcc                | BCC校验相关工具        | 否       |
+| buffer_append      | 缓冲区追加工具         | 是       |
+| crc                | CRC校验工具            | 是       |
+| kalman             | 卡尔曼滤波             | 是       |
+| linear_regression  | 线性回归               | 是       |
+| low_pass_filter    | 低通滤波               | 是       |
+| my_math            | 常用数学工具           | 是       |
+| pid                | PID控制器              | 是       |
+| trajectory_plan    | 轨迹规划               | 是       |

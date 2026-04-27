@@ -2,7 +2,7 @@
  * @file    damiao.c
  * @author  Deadline039
  * @brief   达妙电机驱动
- * @version 1.0
+ * @version 1.1
  * @date    2024-11-27
  */
 
@@ -16,6 +16,7 @@
 #define MIT_MODE       0x000
 #define POS_SPEED_MODE 0x100
 #define SPEED_MODE     0x200
+#define PVT_MODE       0x300
 
 /**
  * @brief CAN 回调函数
@@ -143,6 +144,10 @@ void dm_motor_enable(dm_handle_t *motor) {
             id += SPEED_MODE;
         } break;
 
+        case DM_MODE_PVT: {
+            id += PVT_MODE;
+        } break;
+
         default:
             return;
     }
@@ -174,6 +179,10 @@ void dm_motor_disable(dm_handle_t *motor) {
 
         case DM_MODE_SPEED: {
             id += SPEED_MODE;
+        } break;
+
+        case DM_MODE_PVT: {
+            id += PVT_MODE;
         } break;
 
         default:
@@ -209,6 +218,10 @@ void dm_save_zero(dm_handle_t *motor) {
             id += SPEED_MODE;
         } break;
 
+        case DM_MODE_PVT: {
+            id += PVT_MODE;
+        } break;
+
         default:
             return;
     }
@@ -239,6 +252,10 @@ void dm_clear_error(dm_handle_t *motor) {
 
         case DM_MODE_SPEED: {
             id += SPEED_MODE;
+        } break;
+
+        case DM_MODE_PVT: {
+            id += PVT_MODE;
         } break;
 
         default:
@@ -318,4 +335,41 @@ void dm_speed_ctrl(dm_handle_t *motor, float speed) {
 
     can_send_message(motor->can_select, CAN_ID_STD,
                     motor->device_id + SPEED_MODE, 4, send_msg);
+}
+
+/**
+ * @brief 力位混控模式控制电机
+ *
+ * @param motor 电机指针
+ * @param position 位置
+ * @param speed 速度
+ * @param i_des 最大电流限制
+ */
+void dm_pvt_ctrl(dm_handle_t *motor, float position, float speed, float i_des){
+    if(motor == NULL){
+        return;
+    }
+    /* 限幅 */
+    if (speed < 0.0f) {
+        speed = 0.0f;
+    } else if (speed > 100.0f) {
+        speed = 100.0f;
+    }
+
+    if (i_des < 0.0f) {
+        i_des = 0.0f;
+    } else if (i_des > 1.0f) {
+        i_des = 1.0f;
+    }
+
+    uint16_t speed_raw = (uint16_t)(speed * 100.0f + 0.5f);
+    uint16_t ides_raw  = (uint16_t)(i_des * 10000.0f + 0.5f);
+
+    uint8_t send_msg[8];
+    memcpy(&send_msg[0], &position, sizeof(float));
+    memcpy(&send_msg[4], &speed_raw, sizeof(uint16_t));
+    memcpy(&send_msg[6], &ides_raw, sizeof(uint16_t));
+
+    can_send_message(motor->can_select, CAN_ID_STD,
+                    motor->device_id + PVT_MODE, 8, send_msg);
 }

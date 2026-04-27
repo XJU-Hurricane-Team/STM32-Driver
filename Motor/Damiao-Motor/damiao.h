@@ -8,6 +8,7 @@
  *    Date    | Version |   Author    | Version Info
  * -----------+---------+-------------+----------------------------------------
  * 2024-11-27 |   1.0   | Deadline039 | 初版
+ * 2026-4-13  |   1.1   | Jackrainman | 添加 PVT 模式
  */
 
 #ifndef __DAMIAO_H
@@ -17,7 +18,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <CSP_Config.h>
+#include <cubemx.h>
 
 /**
  * @brief 电机型号
@@ -61,7 +62,8 @@ typedef enum {
 typedef enum {
     DM_MODE_MIT = 0x00U, /*!< MIT 控制模式 */
     DM_MODE_POS_SPEED,   /*!< 位置速度控制模式 */
-    DM_MODE_SPEED        /*!< 速度控制模式 */
+    DM_MODE_SPEED,        /*!< 速度控制模式 */
+    DM_MODE_PVT          /*!< 力位混控模式 */
 } dm_mode_t;
 
 /**
@@ -102,6 +104,7 @@ void dm_mit_ctrl(dm_handle_t *motor, float position, float speed, float kp,
                  float kd, float torque);
 void dm_pos_speed_ctrl(dm_handle_t *motor, float position, float speed);
 void dm_speed_ctrl(dm_handle_t *motor, float speed);
+void dm_pvt_ctrl(dm_handle_t *motor, float position, float speed, float i_des);  // 传入 speed 范围为 0 到 100, i_des 范围为 0 到 1
 
 #ifdef __cplusplus
 }
