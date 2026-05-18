@@ -6,6 +6,7 @@
  * @date    2025-4-18
  * @note    底盘局部坐标系
  *                 y
+ *                 ^
  *                 |
  *                 |           z轴逆时针正
  *                 |
@@ -58,42 +59,16 @@
 
 omni_single_wheel_ctrl_t single_wheel_ctrl;
 float *world_angle;
-bool world_coordinate;
-
-/**
- * @brief 设置世界坐标系
- */
-void omni_set_world_coordinate(void) {
-    world_coordinate = true;
-}
-
-/**
- * @brief 设置自身坐标系
- */
-void omni_set_self_coordinate(void) {
-    world_coordinate = false;
-}
-
-/**
- * @brief 获取当前是否是世界坐标
- * 
- */
-bool omni_is_world_coordinate(void) {
-    return world_coordinate;
-}
 
 /**
  * @brief 全向轮底盘初始化
  * 
  * @param wheel_ctrl 电机控制函数指针
  * @param yaw_angle 世界坐标系下的地址，输入[-PI ~ +PI]
- * @param coordinate 坐标系选择：世界坐标[1],局部坐标[0]
  */
-void omni_wheel_init(omni_single_wheel_ctrl_t wheel_ctrl, float *yaw_angle,
-                     bool coordinate) {
+void omni_wheel_init(omni_single_wheel_ctrl_t wheel_ctrl, float *yaw_angle) {
     single_wheel_ctrl = wheel_ctrl;
     world_angle = yaw_angle;
-    world_coordinate = coordinate;
 }
 
 /**
@@ -109,32 +84,68 @@ void omni_wheel_ctrl(float target_speedx, float target_speedy,
     float speed_wheel[OMNI_WHEEL_NUM]; /* 每个轮子的转速 */
     float world_angle_rad = DEG2RAD(*world_angle);
 
-    /* 判定世界坐标开启or关闭 */
-    if (world_coordinate) {
-        /* 如果开启世界坐标 */
-        speedx = COS_F32(world_angle_rad) * target_speedx +
-                 SIN_F32(world_angle_rad) * target_speedy;
-        speedy = -SIN_F32(world_angle_rad) * target_speedx +
-                 COS_F32(world_angle_rad) * target_speedy;
-        speedw = target_speedw * OMNI_RADIU;
-    } else {
-        /* 如果关闭世界坐标 */
-        speedx = target_speedx;
-        speedy = target_speedy;
-        speedw = target_speedw;
-    }
+    speedx = COS_F32(world_angle_rad) * target_speedx +
+             SIN_F32(world_angle_rad) * target_speedy;
+    speedy = -SIN_F32(world_angle_rad) * target_speedx +
+             COS_F32(world_angle_rad) * target_speedy;
+    speedw = target_speedw * OMNI_RADIU;
+
+    /* 统一引入 Vx, Vy, Vw 硬件坐标系映射，方便与正解算对称。 */
+    float Vx = speedx;
+    float Vy = speedy;
+    float Vw = speedw;
 
 #if (3 == OMNI_WHEEL_NUM)
-    speed_wheel[0] = -speedx + speedw;
-    speed_wheel[1] = speedx * ONE_2 - speedy * SQRT3_2 + speedw;
-    speed_wheel[2] = speedx * ONE_2 + speedy * SQRT3_2 + speedw;
+    speed_wheel[0] = -Vx + Vw;
+    speed_wheel[1] = Vx * ONE_2 - Vy * SQRT3_2 + Vw;
+    speed_wheel[2] = Vx * ONE_2 + Vy * SQRT3_2 + Vw;
 #elif (4 == OMNI_WHEEL_NUM)
-    speed_wheel[0] = -speedx * SQRT2_2 - speedy * SQRT2_2 + speedw;
-    speed_wheel[1] = -speedx * SQRT2_2 + speedy * SQRT2_2 + speedw;
-    speed_wheel[2] = speedx * SQRT2_2 - speedy * SQRT2_2 + speedw;
-    speed_wheel[3] = speedx * SQRT2_2 + speedy * SQRT2_2 + speedw;
+    speed_wheel[0] = Vx * SQRT2_2 + Vy * SQRT2_2 + Vw;
+    speed_wheel[1] = Vx * SQRT2_2 - Vy * SQRT2_2 + Vw;
+    speed_wheel[2] = -Vx * SQRT2_2 + Vy * SQRT2_2 + Vw;
+    speed_wheel[3] = -Vx * SQRT2_2 - Vy * SQRT2_2 + Vw;
 #endif /* OMNI_WHEEL_NUM */
 
     /* 调用轮子控制函数 */
     single_wheel_ctrl(speed_wheel);
+}
+
+/**
+ * @brief 全向轮底盘正向运动学解算
+ *
+ * @param wheel_speed 每个轮子的实际转速反馈
+ * @param speedx 输出的底盘x方向速度（正前方）
+ * @param speedy 输出的底盘y方向速度（正左方）
+ * @param speedw 输出的底盘自转角速度（逆时针）
+ */
+void omni_wheel_forward_calc(float wheel_speed[OMNI_WHEEL_NUM], float *speedx,
+                             float *speedy, float *speedw) {
+    float Vx = 0.0f;
+    float Vy = 0.0f;
+    float Vw = 0.0f;
+    float body_x, body_y, body_w;
+
+#if (3 == OMNI_WHEEL_NUM)
+    Vx = (-2.0f * wheel_speed[0] + wheel_speed[1] + wheel_speed[2]) / 3.0f;
+    Vy = (-wheel_speed[1] + wheel_speed[2]) / (2.0f * SQRT3_2);
+    Vw = (wheel_speed[0] + wheel_speed[1] + wheel_speed[2]) / 3.0f;
+#elif (4 == OMNI_WHEEL_NUM)
+    Vx = (wheel_speed[0] + wheel_speed[1] - wheel_speed[2] - wheel_speed[3]) /
+         (4.0f * SQRT2_2);
+    Vy = (wheel_speed[0] - wheel_speed[1] + wheel_speed[2] - wheel_speed[3]) /
+         (4.0f * SQRT2_2);
+    Vw = (wheel_speed[0] + wheel_speed[1] + wheel_speed[2] + wheel_speed[3]) /
+         4.0f;
+#endif /* OMNI_WHEEL_NUM */
+
+    /* 根据逆解算中定义的硬件映射反推标准车体坐标系速度 */
+    body_x = Vx;
+    body_y = Vy;
+    body_w = Vw;
+
+    /* 逆解算中速度分解是从世界系到车体系，正解算需从车体系恢复到世界系 */
+    float world_angle_rad = DEG2RAD(*world_angle);
+    *speedx = COS_F32(world_angle_rad) * body_x - SIN_F32(world_angle_rad) * body_y;
+    *speedy = SIN_F32(world_angle_rad) * body_x + COS_F32(world_angle_rad) * body_y;
+    *speedw = body_w / OMNI_RADIU;
 }

@@ -9,7 +9,9 @@
 #ifndef __STEERING_WHEEL_H
 #define __STEERING_WHEEL_H
 
-#define WHEEL_NUM 3 /*!< 和解算文件中保持一致 */
+#include <stdbool.h>
+
+#define WHEEL_NUM 4 /*!< 和解算文件中保持一致 */
 /* 航向轮与舵向轮控制函数指针 */
 typedef void (*steering_direction_ctrl_t)(float * /* angle */);
 typedef void (*steering_speed_ctrl_t)(float * /* speed */);
@@ -17,15 +19,15 @@ typedef void (*steering_speed_ctrl_t)(float * /* speed */);
 #ifdef USE_ARM_MATH
 
 #include "arm_math.h"
-#define SIN_F32(x) arm_sin_f32(x)
-#define COS_F32(x) arm_cos_f32(x)
+#define SIN_F32(x)  arm_sin_f32(x)
+#define COS_F32(x)  arm_cos_f32(x)
 #define ACOS_F32(x) acosf(x)
 
 #else /* USE_ARM_MATH */
 
 #include <math.h>
-#define SIN_F32(x) sinf(x)
-#define COS_F32(x) cosf(x)
+#define SIN_F32(x)  sinf(x)
+#define COS_F32(x)  cosf(x)
 #define ACOS_F32(x) acosf(x)
 
 #endif /* USE_ARM_MATH */
@@ -33,11 +35,18 @@ typedef void (*steering_speed_ctrl_t)(float * /* speed */);
 void steering_set_halt(bool halt);
 bool steering_get_halt(void);
 
+/* 当前矩形底盘自转几何比例仍由 steering_wheel.c 内部宏管理；此处接口保持不变。 */
 void steering_wheel_init(float chassis_radius, float *world_angle,
                          const steering_direction_ctrl_t direction_ctrl,
                          const steering_speed_ctrl_t speed_ctrl,
                          float *steering_motor_real_angle[]);
 
 void steering_wheel_ctrl(float speedx, float speedy, float speedw);
+
+void steering_wheel_forward_calc(float wheel_speed[WHEEL_NUM],
+                                 float wheel_angle[WHEEL_NUM], float *speedx,
+                                 float *speedy, float *speedw);
+
+// void steering_wheel_turn_resolve(float x, float y, float v);
 
 #endif /* __STEERING_WHEEL_H */

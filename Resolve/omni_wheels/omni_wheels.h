@@ -31,12 +31,11 @@
 /* 全向轮底盘电机控制函数指针 */
 typedef void (*omni_single_wheel_ctrl_t)(float /* speed */[]);
 
-void omni_wheel_init(omni_single_wheel_ctrl_t wheel_ctrl, float *yaw_angle,
-                     bool coordinate);
+void omni_wheel_init(omni_single_wheel_ctrl_t wheel_ctrl, float *yaw_angle);
 void omni_wheel_ctrl(float target_speedx, float target_speedy,
                      float target_speedw);
-void omni_set_self_coordinate(void);
-void omni_set_world_coordinate(void);
-bool omni_is_world_coordinate(void);
+void omni_wheel_forward_calc(float wheel_speed[OMNI_WHEEL_NUM],
+                             float *speedx, float *speedy, float *speedw);
+
 
 #endif /* __OMNI_WHEELS_H */

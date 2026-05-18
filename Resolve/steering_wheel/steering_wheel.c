@@ -42,15 +42,26 @@
 #include "steering_wheel.h"
 #include "my_math/my_math.h"
 
+/*
+ * 矩形底盘自转切向速度方向比例。
+ * 这里只替换原先“正方形底盘 45 度分解”假设，不改全链路坐标定义与接口。
+ */
+#define CHASSIS_HALF_WIDTH_MM   357.5f
+#define CHASSIS_HALF_LENGTH_MM  263.0f
+#define CHASSIS_ROT_NORM        \
+    (sqrtf(CHASSIS_HALF_WIDTH_MM * CHASSIS_HALF_WIDTH_MM + \
+           CHASSIS_HALF_LENGTH_MM * CHASSIS_HALF_LENGTH_MM))
+#define CHASSIS_ROT_KX          (CHASSIS_HALF_LENGTH_MM / CHASSIS_ROT_NORM)
+#define CHASSIS_ROT_KY          (CHASSIS_HALF_WIDTH_MM / CHASSIS_ROT_NORM)
+
 /* 底盘解算句柄 */
-static struct
-{
-    float radius;                                      /*!< 轮子到中心的距离 */
-    float *world_angle;                                /*!< 世界坐标的角度 */
-    bool halt;                                         /*!< 是否驻停 */
-    float set_wheel_angle[WHEEL_NUM];                  /*!< 设置的轮子角度 */
-    float set_wheel_speed[WHEEL_NUM];                  /*!< 设置的轮子速度 */
-    float *steering_wheel_angle[WHEEL_NUM];            /*!< 每个航向电机当前的角度 */
+static struct {
+    float radius;                           /*!< 轮子到中心的距离 */
+    float *world_angle;                     /*!< 世界坐标的角度 */
+    bool halt;                              /*!< 是否驻停 */
+    float set_wheel_angle[WHEEL_NUM];       /*!< 设置的轮子角度 */
+    float set_wheel_speed[WHEEL_NUM];       /*!< 设置的轮子速度 */
+    float *steering_wheel_angle[WHEEL_NUM]; /*!< 每个航向电机当前的角度 */
     steering_direction_ctrl_t steering_direction_ctrl; /*!< 航向电机控制函数 */
     steering_speed_ctrl_t steering_speed_ctrl;         /*!< 舵向电机控制函数 */
 } steering_ctrl_handle;
@@ -60,8 +71,7 @@ static struct
  *
  * @param coordinate 是否开启自锁
  */
-void steering_set_halt(bool halt)
-{
+void steering_set_halt(bool halt) {
     steering_ctrl_handle.halt = halt;
 }
 
@@ -70,8 +80,7 @@ void steering_set_halt(bool halt)
  *
  * @return 是否开启自锁
  */
-bool steering_get_halt(void)
-{
+bool steering_get_halt(void) {
     return steering_ctrl_handle.halt;
 }
 
@@ -88,16 +97,14 @@ bool steering_get_halt(void)
 void steering_wheel_init(float chassis_radius, float *world_angle,
                          const steering_direction_ctrl_t direction_ctrl,
                          const steering_speed_ctrl_t speed_ctrl,
-                         float *steering_motor_real_angle[])
-{
+                         float *steering_motor_real_angle[]) {
     steering_ctrl_handle.radius = chassis_radius;
     steering_ctrl_handle.world_angle = world_angle;
     steering_ctrl_handle.halt = true;
     steering_ctrl_handle.steering_direction_ctrl = direction_ctrl;
     steering_ctrl_handle.steering_speed_ctrl = speed_ctrl;
 
-    for (uint32_t i = 0; i < WHEEL_NUM; i++)
-    {
+    for (uint32_t i = 0; i < WHEEL_NUM; i++) {
         steering_ctrl_handle.steering_wheel_angle[i] =
             steering_motor_real_angle[i];
     }
@@ -108,11 +115,9 @@ void steering_wheel_init(float chassis_radius, float *world_angle,
  * @param input 需要映射角度
  * @return 映射后的角度
  */
-static float remap(float input)
-{
+static float remap(float input) {
     input = fmod(input, 2 * PI);
-    if (my_fabs(input) > PI)
-    {
+    if (my_fabs(input) > PI) {
         input = input > 0 ? (input - 2 * PI) : (input + 2 * PI);
     }
     return input;
@@ -125,8 +130,7 @@ static float remap(float input)
  * @param num 轮子编号
  * @param theta 舵向轮在世界坐标系下需要偏转的角度
  */
-void steering_wheel_single_ctrl(uint8_t num, float V, float theta)
-{
+void steering_wheel_single_ctrl(uint8_t num, float V, float theta) {
     /* 轮子的角度, 作为中间量 */
     static float wheel_dir[WHEEL_NUM] = {0};
 
@@ -150,8 +154,7 @@ void steering_wheel_single_ctrl(uint8_t num, float V, float theta)
     diff_re_theta = remap(diff_re_theta);
 
     /* 选择较小角度 */
-    if (fabsf(diff_theta) > fabsf(diff_re_theta))
-    {
+    if (fabsf(diff_theta) > fabsf(diff_re_theta)) {
         /*
          * 在当前位置基础上, 转所需角度,
          * 实际转动角度是 diff_re_theta 而不是 theta,
@@ -159,9 +162,7 @@ void steering_wheel_single_ctrl(uint8_t num, float V, float theta)
          */
         theta = wheel_dir[num] + diff_re_theta;
         V = -V;
-    }
-    else
-    {
+    } else {
         /* 在当前位置基础上, 转所需角度.
          * 实际转动角度是 diff_theta 而不是 theta (相当于重新投射到局部坐标系) */
         theta = wheel_dir[num] + diff_theta;
@@ -177,8 +178,7 @@ void steering_wheel_single_ctrl(uint8_t num, float V, float theta)
  * @param speedy y 方向速度
  * @param speedw 自转的角速度
  */
-void steering_wheel_ctrl(float speedx, float speedy, float speedw)
-{
+void steering_wheel_ctrl(float speedx, float speedy, float speedw) {
 
     static float mix_x[WHEEL_NUM] = {0};    /*!< 自身坐标系下x方向上的合速度 */
     static float mix_y[WHEEL_NUM] = {0};    /*!< 自身坐标系下y方向上的合速度 */
@@ -205,19 +205,18 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
      * 后面与平动矢量叠加，逆时针方向为自旋的正方向。
      */
 
-    speed_wx[0] = speedw * COS_F32(PI / 4);
-    speed_wx[1] = speedw * COS_F32(PI / 4);
-    speed_wx[2] = speedw * -COS_F32(PI / 4);
-    speed_wx[3] = speedw * -COS_F32(PI / 4);
+    speed_wx[0] = speedw * CHASSIS_ROT_KX;
+    speed_wx[1] = speedw * CHASSIS_ROT_KX;
+    speed_wx[2] = speedw * -CHASSIS_ROT_KX;
+    speed_wx[3] = speedw * -CHASSIS_ROT_KX;
 
-    speed_wy[0] = speedw * -SIN_F32(PI / 4);
-    speed_wy[1] = speedw * SIN_F32(PI / 4);
-    speed_wy[2] = speedw * -SIN_F32(PI / 4);
-    speed_wy[3] = speedw * SIN_F32(PI / 4);
+    speed_wy[0] = speedw * -CHASSIS_ROT_KY;
+    speed_wy[1] = speedw * CHASSIS_ROT_KY;
+    speed_wy[2] = speedw * -CHASSIS_ROT_KY;
+    speed_wy[3] = speedw * CHASSIS_ROT_KY;
 
     /* 锁死车辆 */
-    if (steering_ctrl_handle.halt)
-    {
+    if (steering_ctrl_handle.halt) {
         wheel_angle[0] = -PI / 4;
         wheel_angle[1] = PI / 4;
         wheel_angle[2] = PI / 4;
@@ -227,21 +226,18 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
         wheel_speed[1] = 0.0f;
         wheel_speed[2] = 0.0f;
         wheel_speed[3] = 0.0f;
-    }
-    else if ((math_compare_float(speedx, 0.0f) != MATH_FP_EQUATION) ||
-             (math_compare_float(speedy, 0.0f) != MATH_FP_EQUATION) ||
-             (math_compare_float(speedw, 0.0f) != MATH_FP_EQUATION))
-    {
+    } else if ((math_compare_float(speedx, 0.0f) != MATH_FP_EQUATION) ||
+               (math_compare_float(speedy, 0.0f) != MATH_FP_EQUATION) ||
+               (math_compare_float(speedw, 0.0f) != MATH_FP_EQUATION)) {
         /* 合成并解算 */
-        for (uint32_t i = 0; i < WHEEL_NUM; i++)
-        {
+        for (uint32_t i = 0; i < WHEEL_NUM; i++) {
             /* 速度分解并合成 */
             mix_x[i] = Vx * COS_F32(steering_select_yaw_angle) +
                        Vy * SIN_F32(steering_select_yaw_angle) + speed_wx[i];
             mix_y[i] = Vy * COS_F32(steering_select_yaw_angle) -
                        Vx * SIN_F32(steering_select_yaw_angle) + speed_wy[i];
             /* 航向电机转速解算 */
-            wheel_speed[i] = sqrt(pow(mix_x[i], 2) + pow(mix_y[i], 2));
+            wheel_speed[i] = sqrtf(mix_x[i] * mix_x[i] + mix_y[i] * mix_y[i]);
 
             /**
              * 这里的所映射到的角度空间是一个和全场定位一样的角度空间,
@@ -255,9 +251,7 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
                                  ? ACOS_F32(mix_y[i] / wheel_speed[i])
                                  : -ACOS_F32(mix_y[i] / wheel_speed[i]);
         }
-    }
-    else
-    {
+    } else {
         /* 仅停止, 保持角度 */
         wheel_speed[0] = 0.0f;
         wheel_speed[1] = 0.0f;
@@ -274,8 +268,7 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
     speed_wy[2] = speedw * -SIN_F32(-PI / 3);
 
     /* 锁死车辆 */
-    if (steering_ctrl_handle.halt)
-    {
+    if (steering_ctrl_handle.halt) {
         wheel_angle[0] = 0;
         wheel_angle[1] = PI / 3;
         wheel_angle[2] = -PI / 3;
@@ -283,22 +276,19 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
         wheel_speed[0] = 0.0f;
         wheel_speed[1] = 0.0f;
         wheel_speed[2] = 0.0f;
-    }
-    else if ((math_compare_float(speedx, 0.0f) != MATH_FP_EQUATION) ||
-             (math_compare_float(speedy, 0.0f) != MATH_FP_EQUATION) ||
-             (math_compare_float(speedw, 0.0f) != MATH_FP_EQUATION))
-    {
+    } else if ((math_compare_float(speedx, 0.0f) != MATH_FP_EQUATION) ||
+               (math_compare_float(speedy, 0.0f) != MATH_FP_EQUATION) ||
+               (math_compare_float(speedw, 0.0f) != MATH_FP_EQUATION)) {
 
         /* 合成并解算 */
-        for (uint32_t i = 0; i < WHEEL_NUM; i++)
-        {
+        for (uint32_t i = 0; i < WHEEL_NUM; i++) {
             /* 速度分解并合成 */
             mix_x[i] = Vx * COS_F32(steering_select_yaw_angle) +
                        Vy * SIN_F32(steering_select_yaw_angle) + speed_wx[i];
             mix_y[i] = Vy * COS_F32(steering_select_yaw_angle) -
                        Vx * SIN_F32(steering_select_yaw_angle) + speed_wy[i];
             /* 航向电机转速解算 */
-            wheel_speed[i] = sqrt(pow(mix_x[i], 2) + pow(mix_y[i], 2));
+            wheel_speed[i] = sqrtf(mix_x[i] * mix_x[i] + mix_y[i] * mix_y[i]);
 
             /**
              * 这里的所映射到的角度空间是一个和全场定位陀螺仪一样的角度空间,
@@ -312,9 +302,7 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
                                  ? ACOS_F32(mix_y[i] / wheel_speed[i])
                                  : -ACOS_F32(mix_y[i] / wheel_speed[i]);
         }
-    }
-    else
-    {
+    } else {
         /* 仅停止, 保持角度 */
         wheel_speed[0] = 0.0f;
         wheel_speed[1] = 0.0f;
@@ -322,8 +310,7 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
     }
 #endif /* WHEEL_NUM */
     /* 单个轮子的角度计算 */
-    for (uint32_t i = 0; i < WHEEL_NUM; i++)
-    {
+    for (uint32_t i = 0; i < WHEEL_NUM; i++) {
         steering_wheel_single_ctrl(i, wheel_speed[i], wheel_angle[i]);
     }
     /* 电机控制 */
@@ -331,4 +318,69 @@ void steering_wheel_ctrl(float speedx, float speedy, float speedw)
         steering_ctrl_handle.set_wheel_angle);
     steering_ctrl_handle.steering_speed_ctrl(
         steering_ctrl_handle.set_wheel_speed);
+}
+
+/**
+ * @brief 舵轮速度正运动学解算
+ *
+ * 将四个舵轮的实际速度和角度转换为车身坐标系下的运动速度
+ *
+ * @param wheel_speed 四个轮子的实际速度（mm/s）
+ * @param wheel_angle 四个轮子的转向角度（rad）
+ * @param speedx 输出的车身x方向速度（mm/s）
+ * @param speedy 输出的车身y方向速度（mm/s）
+ * @param speedw 输出的自转角速度（rad/s）
+ */
+void steering_wheel_forward_calc(float wheel_speed[WHEEL_NUM],
+                                 float wheel_angle[WHEEL_NUM],
+                                 float *speedx, float *speedy,
+                                 float *speedw) {
+    float out_x = 0.0f, out_y = 0.0f, out_w = 0.0f;
+
+#if WHEEL_NUM == 4
+    float wheel_x[WHEEL_NUM] = {0.0f};
+    float wheel_y[WHEEL_NUM] = {0.0f};
+
+    /* 将轮速按当前舵角分解到定位坐标系。 */
+    for (uint32_t i = 0; i < WHEEL_NUM; i++) {
+        wheel_x[i] = -wheel_speed[i] * SIN_F32(wheel_angle[i]);
+        wheel_y[i] = wheel_speed[i] * COS_F32(wheel_angle[i]);
+    }
+
+    /* 质心平动速度取四轮分量平均。 */
+    float body_x =
+        (wheel_x[0] + wheel_x[1] + wheel_x[2] + wheel_x[3]) * 0.25f;
+    float body_y =
+        (wheel_y[0] + wheel_y[1] + wheel_y[2] + wheel_y[3]) * 0.25f;
+
+    /* 左右轮速度差估计旋转分量。 */
+    float rot_from_x =
+        (wheel_x[0] + wheel_x[1] - wheel_x[2] - wheel_x[3]) /
+        (4.0f * CHASSIS_ROT_KX);
+
+    /* 前后轮速度差估计旋转分量。 */
+    float rot_from_y =
+        (wheel_y[1] + wheel_y[3] - wheel_y[0] - wheel_y[2]) /
+        (4.0f * CHASSIS_ROT_KY);
+
+    float rot_speed = (rot_from_x + rot_from_y) * 0.5f;
+
+    /* 转回车身坐标系，world_angle 是车头朝向，转换需要取反。 */
+    float yaw = DEG2RAD(-(*steering_ctrl_handle.world_angle));
+    float cos_yaw = COS_F32(yaw);
+    float sin_yaw = SIN_F32(yaw);
+    float vy_internal = body_x * sin_yaw + body_y * cos_yaw;
+
+    out_x = body_x * cos_yaw - body_y * sin_yaw;
+    out_y = -vy_internal;
+
+    /* radius 为 0 时表示纯平移运动，不计算角速度 */
+    if (steering_ctrl_handle.radius > 0.0f) {
+        out_w = rot_speed / steering_ctrl_handle.radius;
+    }
+#endif /* WHEEL_NUM == 4 */
+
+    *speedx = out_x;
+    *speedy = out_y;
+    *speedw = out_w;
 }
