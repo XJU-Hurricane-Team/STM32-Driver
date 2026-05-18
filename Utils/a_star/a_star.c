@@ -2,9 +2,9 @@
  * @file a_star.c
  * @author PickingChip
  * @brief a_star 算法
- * @version 0.1
+ * @version 0.2
  * @date 2026-04-27
- * 
+ *
  */
 
 #include <stdio.h>
@@ -13,93 +13,68 @@
 
 #include "a_star.h"
 
-/*
- * 26RC 比赛场地的静态栅格地图，30行15列。
- * 场地被划分为450个40cm x 40cm的格子，每个格子对应地图中的一个元素。
- * 1 表示该格子可通行，0 表示该格子不可通行
- */
-static const uint8_t g_map[MAP_ROWS][MAP_COLS] = {
-    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},/* 武馆开始 */
-    {0,1,1,1,1,0,0,0,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},/* 梅林开始 */
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,0,0,0,0,0,0,0,0,0,0,0,0},/* 对抗区开始 */
-    {0,1,1,0,0,0,0,0,0,0,0,0,0,0,0},
-    {0,1,1,0,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-};
-
 typedef struct {
     uint16_t id;    /* 节点索引 id（0~MAX_NODES-1） */
     uint16_t f;     /* 对应节点的 f 值 */
 } OpenNode;
 
-static uint16_t came_from[MAX_NODES];   /*  到达节点 n 的前驱节点 id，用于终点回溯整条路径。 */
-static uint16_t g_score[MAX_NODES];     /* 起点到节点 n 的当前最小已知代价。*/
-static uint16_t f_score[MAX_NODES];     /* f_score[n] = g_score[n] + heuristic(n, goal)，A* 的排序依据。 */
-static uint8_t closed_set[MAX_NODES];   /* closed_set[n] = 1 表示节点 n 已完成扩展，不再重复处理。 */
-static OpenNode open_list[MAX_NODES];   /* 开放表（待扩展节点集合），当前用顺序表实现。*/
-static int16_t open_pos[MAX_NODES];     /* 节点在堆中的位置，-1 表示不在 open 表。*/
+static uint16_t came_from[ASTAR_MAX_NODES];   /* 到达节点 n 的前驱节点 id */
+static uint16_t g_score[ASTAR_MAX_NODES];     /* 起点到节点 n 的当前最小已知代价 */
+static uint16_t f_score[ASTAR_MAX_NODES];     /* f_score[n] = g_score[n] + h(n) */
+static uint8_t closed_set[ASTAR_MAX_NODES];   /* 节点完成扩展标志 */
+static OpenNode open_list[ASTAR_MAX_NODES];   /* 开放表（二叉小顶堆） */
+static int16_t open_pos[ASTAR_MAX_NODES];     /* 节点在堆中的位置 */
 static int open_count;                  /* 开放表当前元素个数。*/
 
 
-/* 行列边界检查：防止访问地图越界。 */
-int is_valid_rc(uint16_t row, uint16_t col) {
-    return (row < MAP_ROWS && col < MAP_COLS);
-}
+/* 保存当前环境配置，避免在各静态函数中反复传递 */
+static const astar_config_t *curr_cfg = NULL;
 
-/* 坐标转索引：id = row * MAP_COLS + col */
-uint16_t rc_to_id(uint16_t row, uint16_t col) {
-    return (uint16_t)(row * MAP_COLS + col);
-}
-
-/* 索引转行号 */
-uint16_t id_to_row(uint16_t id) {
-    return (uint16_t)(id / MAP_COLS);
-}
-
-/* 索引转列号 */
-uint16_t id_to_col(uint16_t id) {
-    return (uint16_t)(id % MAP_COLS);
-}
-
-/* 判断节点是否可通行（地图值为1则可走） */
-int is_walkable_id(uint16_t id) {
-    uint16_t row = id_to_row(id);
-    uint16_t col = id_to_col(id);
-    return g_map[row][col] == 1;
-}
-
-/*
- * 启发函数 h(n)：曼哈顿距离。
- * 由于本实现是4邻接（上下左右，每步代价=1），
- * 曼哈顿距离满足可采纳性，A* 能得到最短路径。
+/**
+ * @brief 计算移动方向，用于拐弯惩罚判断。
+ * @note 利用 id 差值直接判断方向，无需计算行列坐标，效率最高。
+ * @param from 起点节点id
+ * @param to 终点节点id
+ * @return 移动方向: 0=上, 1=下, 2=左, 3=右, 4=非法
  */
-static uint16_t heuristic_to_goal(uint16_t id, uint16_t goal_row, uint16_t goal_col) {
-    uint16_t r = (uint16_t)(id / MAP_COLS);
-    uint16_t c = (uint16_t)(id - r * MAP_COLS);
+static inline uint8_t get_move_dir(uint16_t from, uint16_t to) {
+    int16_t diff = (int16_t)to - (int16_t)from;
+    if (diff == -(int16_t)curr_cfg->cols) return 0;
+    if (diff == (int16_t)curr_cfg->cols)  return 1;
+    if (diff == -1)                 return 2;  /* 左: id 减少 1 */
+    if (diff == 1)                  return 3;  /* 右: id 增加 1 */
+    return 4;  /* 应该不会发生 */
+}
+
+/**
+ * @brief 计算从当前节点移动到邻居节点的步进代价。
+ * @note 直行=1，转弯=1+TURN_PENALTY，从起点出发无惩罚。
+ * @param current 当前节点id
+ * @param nb 邻居节点id
+ * @return 计算得到的步进代价
+ */
+static inline uint16_t calc_step_cost(uint16_t current, uint16_t nb) {
+    uint16_t prev = came_from[current];
+    if (prev == ASTAR_NODE_INVALID) {
+        return 1;  /* 起点，无转弯 */
+    }
+    uint8_t prev_dir = get_move_dir(prev, current);
+    uint8_t curr_dir = get_move_dir(current, nb);
+    return (prev_dir == curr_dir) ? 1 : (uint16_t)(1 + TURN_PENALTY);
+}
+
+/**
+ * @brief 启发函数 h(n)：计算到终点的曼哈顿距离。
+ * @note 由于本实现是4邻接（上下左右，每步代价=1），
+ *       曼哈顿距离满足可采纳性，A* 能得到最短路径。
+ * @param id 当前节点id
+ * @param goal_row 终点行坐标
+ * @param goal_col 终点列坐标
+ * @return 预估的最小代价 (曼哈顿距离)
+ */
+static uint16_t heuristic_to_goal(uint16_t id, int goal_row, int goal_col) {
+    int r = (int)(id / curr_cfg->cols);
+    int c = (int)(id % curr_cfg->cols);
     int dr = r - goal_row;
     int dc = c - goal_col;
     if (dr < 0) dr = -dr;
@@ -107,6 +82,11 @@ static uint16_t heuristic_to_goal(uint16_t id, uint16_t goal_row, uint16_t goal_
     return (uint16_t)(dr + dc);
 }
 
+/**
+ * @brief 交换开放表(二叉堆)中的两个节点位置
+ * @param i 第一个节点的堆索引
+ * @param j 第二个节点的堆索引
+ */
 static void open_swap(int i, int j) {
     OpenNode tmp = open_list[i];
     open_list[i] = open_list[j];
@@ -115,6 +95,10 @@ static void open_swap(int i, int j) {
     open_pos[open_list[j].id] = (int16_t)j;
 }
 
+/**
+ * @brief 开放表(二叉小顶堆)向上调整操作
+ * @param idx 需要调整的节点索引
+ */
 static void open_sift_up(int idx) {
     while (idx > 0) {
         int parent = (idx - 1) / 2;
@@ -126,6 +110,10 @@ static void open_sift_up(int idx) {
     }
 }
 
+/**
+ * @brief 开放表(二叉小顶堆)向下调整操作
+ * @param idx 需要调整的节点索引
+ */
 static void open_sift_down(int idx) {
     for (;;) {
         int left = idx * 2 + 1;
@@ -147,6 +135,11 @@ static void open_sift_down(int idx) {
     }
 }
 
+/**
+ * @brief 将新节点压入开放表，或更新已有节点的f值
+ * @param id 节点id
+ * @param f 节点的综合代价f值
+ */
 static void open_push_or_update(uint16_t id, uint16_t f) {
     int idx = open_pos[id];
 
@@ -158,7 +151,7 @@ static void open_push_or_update(uint16_t id, uint16_t f) {
         return;
     }
 
-    if (open_count < MAX_NODES) {
+    if (open_count < ASTAR_MAX_NODES) {
         int insert_idx = open_count;
         open_list[insert_idx].id = id;
         open_list[insert_idx].f = f;
@@ -168,9 +161,13 @@ static void open_push_or_update(uint16_t id, uint16_t f) {
     }
 }
 
+/**
+ * @brief 从开放表中弹出f值最小的节点
+ * @return f值最小的节点id，若开放表为空则返回 NODE_INVALID
+ */
 static uint16_t open_pop_min(void) {
     if (open_count <= 0) {
-        return NODE_INVALID;
+        return ASTAR_NODE_INVALID;
     }
 
     uint16_t id = open_list[0].id;
@@ -186,37 +183,48 @@ static uint16_t open_pop_min(void) {
     return id;
 }
 
+/**
+ * @brief 获取当前节点周围的4个正交邻居节点(上下左右)
+ * @param id 当前节点id
+ * @param neighbors 用于存储合法邻居节点id的数组
+ * @return 合法邻居的数量
+ */
 static int get_neighbors4(uint16_t id, uint16_t neighbors[4]) {
-    uint16_t row = (uint16_t)(id / MAP_COLS);
-    uint16_t col = (uint16_t)(id - row * MAP_COLS);
+    int row = (int)(id / curr_cfg->cols);
+    int col = (int)(id % curr_cfg->cols);
     int count = 0;
 
-    if (row > 0 && g_map[row - 1][col]) {
-        neighbors[count++] = (uint16_t)(id - MAP_COLS);
+    if (row > 0 && curr_cfg->is_walkable(row - 1, col)) {
+        neighbors[count++] = (uint16_t)(id - curr_cfg->cols);
     }
-    if (row + 1 < MAP_ROWS && g_map[row + 1][col]) {
-        neighbors[count++] = (uint16_t)(id + MAP_COLS);
+    if (row + 1 < curr_cfg->rows && curr_cfg->is_walkable(row + 1, col)) {
+        neighbors[count++] = (uint16_t)(id + curr_cfg->cols);
     }
-    if (col > 0 && g_map[row][col - 1]) {
+    if (col > 0 && curr_cfg->is_walkable(row, col - 1)) {
         neighbors[count++] = (uint16_t)(id - 1u);
     }
-    if (col + 1 < MAP_COLS && g_map[row][col + 1]) {
+    if (col + 1 < curr_cfg->cols && curr_cfg->is_walkable(row, col + 1)) {
         neighbors[count++] = (uint16_t)(id + 1u);
     }
 
     return count;
 }
 
+/**
+ * @brief 回溯并生成正向路径
+ * @note 从 goal 沿 came_from 反向回溯到 start，再反转得到正向路径。
+ * @param start_id 起点节点id
+ * @param goal_id 终点节点id
+ * @param path_out 输出的正向路径数组
+ * @param max_len 最大允许的路径长度
+ * @return 生成的路径长度，若失败则返回0
+ */
 static int reconstruct_path(uint16_t start_id, uint16_t goal_id, uint16_t *path_out, int max_len) {
-    /*
-     * 从 goal 沿 came_from 反向回溯到 start，
-     * 再反转得到正向路径。
-     */
-    uint16_t rev_path[MAX_NODES];
+    uint16_t rev_path[ASTAR_MAX_NODES];
     int rev_len = 0;
     uint16_t node = goal_id;
 
-    while (node != NODE_INVALID && rev_len < MAX_NODES) {
+    while (node != ASTAR_NODE_INVALID && rev_len < ASTAR_MAX_NODES) {
         rev_path[rev_len++] = node;
         if (node == start_id) {
             break;
@@ -241,31 +249,37 @@ static int reconstruct_path(uint16_t start_id, uint16_t goal_id, uint16_t *path_
 
 /**
  * @brief A* 寻路主函数
- * 
- * @param start_row 起点行坐标
- * @param start_col 起点列坐标
- * @param goal_row 终点行坐标
- * @param goal_col 终点列坐标
+ *
+ * @param config A*环境配置
+ * @param start_row 起点行
+ * @param start_col 起点列
+ * @param goal_row 终点行
+ * @param goal_col 终点列
  * @param path_out 输出路径数组，存储路径上节点的 id 序列
  * @param max_len 输出路径数组的最大长度
- * 
+ *
  * @note  输入起终点格子坐标，返回路径上的格子编号序列。
  *        编号规则: id = row * MAP_COLS + col (从0开始)
  *        返回值: >0 路径长度, 0 无路径或输入非法。
  */
-int astar_find_path_by_coord(uint16_t start_row, uint16_t start_col,
-                             uint16_t goal_row, uint16_t goal_col,
-                             uint16_t *path_out, int max_len) {
+int astar_find_path(const astar_config_t *config, int start_row, int start_col,
+                    int goal_row, int goal_col, uint16_t *path_out, int max_len) {
     /* 参数合法性检查 */
-    if (path_out == NULL || max_len <= 0) {
+    if (path_out == NULL || max_len <= 0 || config == NULL || config->is_walkable == NULL) {
         return 0;
     }
-    if (!is_valid_rc(start_row, start_col) || !is_valid_rc(goal_row, goal_col)) {
+    if (config->rows * config->cols > ASTAR_MAX_NODES) {
+        return 0;
+    }
+    if (start_row < 0 || start_row >= config->rows || start_col < 0 || start_col >= config->cols ||
+        goal_row < 0 || goal_row >= config->rows || goal_col < 0 || goal_col >= config->cols) {
         return 0;
     }
 
-    uint16_t start_id = rc_to_id(start_row, start_col);
-    uint16_t goal_id = rc_to_id(goal_row, goal_col);
+    curr_cfg = config;
+
+    uint16_t start_id = (uint16_t)(start_row * config->cols + start_col);
+    uint16_t goal_id = (uint16_t)(goal_row * config->cols + goal_col);
 
     if (start_id == goal_id) {
         path_out[0] = start_id;
@@ -273,15 +287,15 @@ int astar_find_path_by_coord(uint16_t start_row, uint16_t start_col,
     }
 
     /* 起点或终点落在障碍上，直接判失败 */
-    if (!is_walkable_id(start_id) || !is_walkable_id(goal_id)) {
+    if (!config->is_walkable(start_row, start_col) || !config->is_walkable(goal_row, goal_col)) {
         return 0;
     }
 
     /* 每次规划前清空状态数组 */
-    for (int i = 0; i < MAX_NODES; i++) {
-        came_from[i] = NODE_INVALID;
-        g_score[i] = INF_COST;
-        f_score[i] = INF_COST;
+    for (int i = 0; i < ASTAR_MAX_NODES; i++) {
+        came_from[i] = ASTAR_NODE_INVALID;
+        g_score[i] = ASTAR_INF_COST;
+        f_score[i] = ASTAR_INF_COST;
         closed_set[i] = 0;
         open_pos[i] = -1;
     }
@@ -294,7 +308,7 @@ int astar_find_path_by_coord(uint16_t start_row, uint16_t start_col,
     /* A* 主循环 */
     while (open_count > 0) {
         uint16_t current = open_pop_min();
-        if (current == NODE_INVALID) {
+        if (current == ASTAR_NODE_INVALID) {
             break;
         }
 
@@ -316,8 +330,9 @@ int astar_find_path_by_coord(uint16_t start_row, uint16_t start_col,
                 continue;
             }
 
-            /* 4邻接每步代价固定为1 */
-            uint16_t tentative_g = (uint16_t)(g_score[current] + 1u);
+            /* 计算步进代价：直行=1，转弯=1+TURN_PENALTY */
+            uint16_t step_cost = calc_step_cost(current, nb);
+            uint16_t tentative_g = (uint16_t)(g_score[current] + step_cost);
             if (tentative_g < g_score[nb]) {
                 /* 找到更优路径，更新父节点和代价 */
                 came_from[nb] = current;
@@ -331,82 +346,10 @@ int astar_find_path_by_coord(uint16_t start_row, uint16_t start_col,
     return 0;
 }
 
-void print_map_with_path(const uint16_t *path, int path_len) {
-    /*
-     * 该函数用于调试可视化：
-     * '1' 可走，'0' 障碍，'*' 路径，'S' 起点，'G' 终点。
-     * 在 STM32 裸机中可改为串口输出，或直接删去。
-     */
-    printf("Map with path overlay:\n");
-    for (int r = 0; r < MAP_ROWS; r++) {
-        for (int c = 0; c < MAP_COLS; c++) {
-            uint16_t id = rc_to_id(r, c);
-            char ch = g_map[r][c] ? '1' : '0';
-
-            if (path_len > 0) {
-                if (id == path[0]) {
-                    ch = 'S';
-                } else if (id == path[path_len - 1]) {
-                    ch = 'G';
-                } else if (ch == '1') {
-                    for (int i = 1; i < path_len - 1; i++) {
-                        if (path[i] == id) {
-                            ch = '*';
-                            break;
-                        }
-                    }
-                }
-            }
-
-            putchar(ch);
-        }
-        putchar('\n');
-    }
-}
-
 #if 0
-
-/**
- * @brief 路径打印函数
- * @note 打印路径覆盖后的地图：
- * '1' 可走, '0' 障碍, '*' 路径, 'S' 起点, 'G' 终点
- */
-static void print_map_with_path(const uint16_t *path, int path_len) {
-    /*
-     * 该函数用于调试可视化：
-     * '1' 可走，'0' 障碍，'*' 路径，'S' 起点，'G' 终点。
-     * 在 STM32 裸机中可改为串口输出，或直接删去。
-     */
-    printf("Map with path overlay:\n");
-    for (int r = 0; r < MAP_ROWS; r++) {
-        for (int c = 0; c < MAP_COLS; c++) {
-            uint16_t id = rc_to_id(r, c);
-            char ch = g_map[r][c] ? '1' : '0';
-
-            if (path_len > 0) {
-                if (id == path[0]) {
-                    ch = 'S';
-                } else if (id == path[path_len - 1]) {
-                    ch = 'G';
-                } else if (ch == '1') {
-                    for (int i = 1; i < path_len - 1; i++) {
-                        if (path[i] == id) {
-                            ch = '*';
-                            break;
-                        }
-                    }
-                }
-            }
-
-            putchar(ch);
-        }
-        putchar('\n');
-    }
-}
-
 /**
  * @brief 主函数，用于pc调试演示
- * 
+ *
  */
 
 int main(void) {
@@ -441,7 +384,7 @@ int main(void) {
         return 0;
     }
 
-    printf("Path length: %d\n", len);
+    path_process_print_map(path, len);
     printf("Path node id sequence: ");
     for (int i = 0; i < len; i++) {
         printf("%u", (unsigned int)path[i]);
