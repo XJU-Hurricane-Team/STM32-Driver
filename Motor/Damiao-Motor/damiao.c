@@ -2,7 +2,7 @@
  * @file    damiao.c
  * @author  Deadline039
  * @brief   达妙电机驱动
- * @version 1.1
+ * @version 1.2
  * @date    2024-11-27
  */
 
@@ -18,12 +18,19 @@
 #define SPEED_MODE     0x200
 #define PVT_MODE       0x300
 
+/* 0x7FF 标准帧, 应答从 MST_ID 回 can_callback */
+#define DM_REG_FRAME_ID   0x7FF /*!< 寄存器读写/存参的 CAN ID */
+#define DM_REG_CMD_WRITE  0x55  /*!< 写 RAM (掉电丢失) */
+#define DM_REG_CMD_READ   0x33  /*!< 读寄存器, 应答回 MST_ID */
+#define DM_REG_CMD_SAVE   0xAA  /*!< 写 Flash (配合 D[3]=0x01) */
+
 /**
  * @brief CAN 回调函数
  *
  * @param node_obj 节点数据
  * @param can_rx_header CAN 消息头
  * @param can_msg CAN 消息
+ * @note 应答时按寄存器帧解析, 否则按状态反馈拆包.
  */
 static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
                          uint8_t *can_msg) {
@@ -35,6 +42,21 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
 
     if (can_rx_header->id != motor->master_id) {
         return;
+    }
+
+    /* 接收应答时 D[2] 当功能码, 否则按状态帧拆 */
+    if (motor->reg_read_pending == 1U) {
+        uint8_t cmd = can_msg[2];
+        if (cmd == DM_REG_CMD_READ || cmd == DM_REG_CMD_WRITE
+            || cmd == DM_REG_CMD_SAVE) {
+            motor->reg_read_addr  = can_msg[3];
+            motor->reg_read_value = (uint32_t)can_msg[4]
+                                  | ((uint32_t)can_msg[5] << 8)
+                                  | ((uint32_t)can_msg[6] << 16)
+                                  | ((uint32_t)can_msg[7] << 24);
+            motor->reg_read_pending = 0U;
+            return;
+        }
     }
 
     motor->device_id = can_msg[0] & 0x0F;
@@ -372,4 +394,131 @@ void dm_pvt_ctrl(dm_handle_t *motor, float position, float speed, float i_des){
 
     can_send_message(motor->can_select, CAN_ID_STD,
                     motor->device_id + PVT_MODE, 8, send_msg);
+}
+
+/**
+ * @brief 通用写寄存器 (0x55 → RAM)
+ *
+ * @param motor    电机指针
+ * @param reg_addr 寄存器地址
+ * @param value    uint32 数据 (float 调用方先用 memcpy 转)
+ * @retval 0: 已发送
+ * @retval 1: `motor` 为空
+ */
+uint8_t dm_write_register(dm_handle_t *motor, uint8_t reg_addr,
+                          uint32_t value) {
+    if (motor == NULL) {
+        return 1;
+    }
+
+    motor->reg_read_pending = 1U;
+
+    uint8_t send_msg[8];
+    send_msg[0] = (uint8_t)(motor->device_id & 0xFFU);
+    send_msg[1] = (uint8_t)((motor->device_id >> 8) & 0x07U);
+    send_msg[2] = DM_REG_CMD_WRITE;
+    send_msg[3] = reg_addr;
+    send_msg[4] = (uint8_t)(value & 0xFFU);
+    send_msg[5] = (uint8_t)((value >> 8) & 0xFFU);
+    send_msg[6] = (uint8_t)((value >> 16) & 0xFFU);
+    send_msg[7] = (uint8_t)((value >> 24) & 0xFFU);
+
+    can_send_message(motor->can_select, CAN_ID_STD, DM_REG_FRAME_ID, 8,
+                     send_msg);
+
+    return 0;
+}
+
+/**
+ * @brief 在线切换控制模式 (写 CTRL_MODE 0x0A)
+ *
+ * @param motor 电机指针
+ * @param mode  目标模式
+ * @retval 0: 成功
+ * @retval 1: `motor` 为空
+ * @retval 2: 已是该模式 (跳过, 避免清零 PID)
+ * @retval 3: 非法 mode
+ */
+uint8_t dm_set_control_mode(dm_handle_t *motor, dm_mode_t mode) {
+    if (motor == NULL) {
+        return 1;
+    }
+
+    if (motor->mode == mode) {
+        /* 已处于目标模式, 跳过避免清零 PID */
+        return 2;
+    }
+
+    switch (mode) {
+        case DM_MODE_MIT:
+        case DM_MODE_POS_SPEED:
+        case DM_MODE_SPEED:
+        case DM_MODE_PVT:
+            break;
+        default:
+            return 3;
+    }
+
+    (void)dm_write_register(motor, DM_REG_CTRL_MODE, (uint32_t)mode);
+
+    motor->mode = mode;
+
+    return 0;
+}
+
+/**
+ * @brief 异步读寄存器 (0x33)
+ *
+ * @param motor    电机指针
+ * @param reg_addr 寄存器地址
+ * @retval 0: 已发送
+ * @retval 1: `motor` 为空
+ */
+uint8_t dm_read_register(dm_handle_t *motor, uint8_t reg_addr) {
+    if (motor == NULL) {
+        return 1;
+    }
+
+    motor->reg_read_pending = 1U;
+
+    uint8_t send_msg[4];
+    send_msg[0] = (uint8_t)(motor->device_id & 0xFFU);
+    send_msg[1] = (uint8_t)((motor->device_id >> 8) & 0x07U);
+    send_msg[2] = DM_REG_CMD_READ;
+    send_msg[3] = reg_addr;
+
+    can_send_message(motor->can_select, CAN_ID_STD, DM_REG_FRAME_ID, 4,
+                     send_msg);
+
+    return 0;
+}
+
+/**
+ * @brief 参数持久化到 Flash ，先失能后写入，再使能
+ *
+ * @param motor 电机指针
+ * @retval 0: 已发送
+ * @retval 1: `motor` 为空
+ */
+uint8_t dm_save_param(dm_handle_t *motor) {
+    if (motor == NULL) {
+        return 1;
+    }
+
+    motor->reg_read_pending = 1U;
+
+    uint8_t send_msg[4];
+    send_msg[0] = (uint8_t)(motor->device_id & 0xFFU);
+    send_msg[1] = (uint8_t)((motor->device_id >> 8) & 0x07U);
+    send_msg[2] = DM_REG_CMD_SAVE;
+    send_msg[3] = 0x01U;
+
+    dm_motor_disable(motor); /* 存参前先 disable */
+
+    can_send_message(motor->can_select, CAN_ID_STD, DM_REG_FRAME_ID, 4,
+                     send_msg);
+
+    dm_motor_enable(motor); /* 存参后再 enable */
+
+    return 0;
 }
