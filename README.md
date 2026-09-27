@@ -97,4 +97,6 @@
 | my_math           | 常用数学工具                   | 是       |
 | pid               | PID控制器                      | 是       |
 | trajectory_plan   | 轨迹规划                       | 是       |
+| td                | 跟踪微分器                     | 是       |
+| ladrc             | 一阶/二阶线性自抗扰控制        | 是，但仅在电机上验证  |
 | ring_fifo         | 循环队列                       | 是       |
