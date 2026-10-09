@@ -1,0 +1,3408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package schemaVersion="1.7.36" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="https://raw.githubusercontent.com/Open-CMSIS-Pack/Open-CMSIS-Pack-Spec/v1.7.36/schema/PACK.xsd">
+  <vendor>Keil</vendor>
+  <name>STM32F3xx_DFP</name>
+  <description overview="Documents/OVERVIEW.md">STMicroelectronics STM32F3 Series Device Support</description>
+  <url>https://www.keil.com/pack/</url>
+  <repository type="git">https://github.com/Open-CMSIS-Pack/STM32F3xx_DFP.git</repository>
+  <license>LICENSE</license>
+  <licenseSets>
+    <licenseSet id="all" default="true" gating="true">
+      <license title="Apache-2.0 License for CMSIS add-ons" name="LICENSE" spdx="Apache-2.0"/>
+    </licenseSet>
+  </licenseSets>
+
+  <releases>
+    <release version="3.1.0" date="2025-09-17" tag="v3.1.0">
+      Updated debug configuration files
+      Updated documentation references
+      Updated Templates:
+      - Added DWARF-5 debug information
+      - Added generated output files
+      Package Description (pdsc):
+      - Corrected SRAM memory sizes
+      - Added CCM RAM memory regions (STM32F303/STM32F3x4)
+      - Shortened device family description
+      - Added Ddsp processor attribute
+    </release>
+    <release version="3.0.0" date="2025-03-25" tag="v3.0.0">
+      Updated for new CMSIS-Toolbox CubeMX integration
+      Removed CMSIS Drivers
+      Removed STM32CubeMX_FW_F3
+      Removed board drivers (ADC, Audio, Buttons, GLCD, Joystick, LED, Touch...)
+      Removed all examples
+      Updated SVD files
+      Removed previous generator (gpdsc)
+      Added new global generator
+      Package Description (pdsc):
+      - Removed Device:Startup component
+      - Removed Device:STM32Cube HAL components
+      - Removed Device:STM32Cube LL components
+      - Removed Board descriptions
+      - Removed BSP components
+      - Removed compile device header from device description
+      - Removed unused conditions
+      - Replaced documentation files with permalinks
+      - Updated memories regions
+      Updated LICENSE file
+    </release>
+    <release version="2.2.2" date="2022-02-01">
+      Updated Pack to STM32Cube_FW_F3 Firmware Package version V1.11.3:
+      - Corrected USB Device HAL Driver (stm32f3xx_hal_pcd.c).
+      Package Description (pdsc): 
+      - Updated component ::Device:Startup (Standalone).
+      - STM32303E-EVAL: Added board components drivers.
+      Updated Documentation files.
+      Board Examples:
+      - Migrated CubeMX projects to V6.4.0.
+      - Overridden default HAL_InitTick function.
+    </release>
+    <release version="2.2.1" date="2021-09-27">
+      STM32Cube_FW_F3 Firmware V1.11.2:
+      - Corrected USB Device HAL Driver (stm32f3xx_hal_pcd.c).
+      CMSIS-Driver:
+      - I2C: Corrected pin configuration.
+      Corrected device in board description attribute 'mountedDevice'.
+    </release>
+    <release version="2.2.0" date="2021-07-22">
+      Updated Pack to STM32Cube_FW_F3 Firmware Package version V1.11.2:
+      - Updated HAL to version V1.5.5.
+      - External interrupts and events (EXTI) HAL
+      - Universal serial bus full-speed device interface (USB) LL
+      - Added global define USE_HAL_DRIVER and USE_FULL_LL_DRIVER to the component ::Device:STM32Cube Framework:STM32CubeMX.
+      - Added global define USE_HAL_DRIVER and USE_FULL_LL_DRIVER to the component ::Device:STM32Cube HAL:COMMON.
+      STM32CubeMX integration:
+      - MX_Device_h.ftl:
+      -- Updated parsing of USART virtual mode.
+      -- Updated generation of macros: Added handling for '(' and ')' symbols.
+      - FrameworkCubeMX_gpdsc.ftl:
+      -- Added support for Timebase Source TIMx.
+      Board Examples:
+      - Terminating app_main thread with osThreadExit() to avoid endless loop.
+      - Updated RTX configuration (CMSIS 5.8.0).
+      - Updated template based files (MDK-Middleware 7.13.0).
+      - Configured MDK projects to use Arm Compiler 6.
+      - Changed Assembler option to armclang (Auto Select).
+      - Updated all USB Host/Device examples with user templates from MDK-Middleware v7.11.1.
+      - FileSystem, USB: Changed variant selection to "MDK-Plus".
+      - Updated Graphics examples to use Segger emWin version 5.50.
+      CMSIS Driver:
+      - CAN: 
+      -- Corrected SetBitrate function to leave Silent and Loopback mode as they were.
+      -- Corrected SetMode function to clear Silent and Loopback mode when NORMAL mode is activated.
+      -- Corrected MessageSend function to only access required data for sending.
+      -- Corrected abort message send functionality.
+      - I2C:
+      -- Corrected pin configuration: MX_I2Cx_SMBA_GPIO_PuPdOD replaced with MX_I2Cx_yyy_GPIO_PuPdOD.
+      -- Corrected usage function name
+      - USB Device:
+      -- Corrected transmitted count for non-control IN endpoints.
+      -- Updated USBD_EndpointConfigure function to check that maximum packet size requested fits into configured FIFO (compile time configured).
+      -- Removed include of stm32f3xx_hal_pcd.h header.
+    </release>
+    <release version="2.1.0" date="2018-01-16">
+      This DFP works either with STM32CubeMX (STM32CubeMX V4.23.0 and STM32Cube_FW_F3 V1.9.0 or higher)
+      or Standalone (no support for STM32CubeMX). STM32CubeMX is mandatory for use of CMSIS-Driver and MDK-Middleware.
+      This packs contains a subset of the files from STM32Cube_FW_F3 version 1.9.0  (Drivers, STCube documentation and fonts).
+      Updated documentation for STM32Cube Framework usage.
+      - New projects require the component 'Device:STM32Cube Framework:STM32CubeMX' for configuration of pins and clocks via STM32CubeMX.
+      Device support:
+      - Removed devices not being supported by STM32CubeMX 4.23.0 (STM32F301C6Yx, STM32F301K6Tx).
+      - Added DBGMCU INI files for use with debug adapter that lack support for debug descriptions.
+      Board support:
+      - Added Board Support Interfaces for STM32303S-EVAL board and example projects.
+      Example projects:
+      - Added emWin example for STM32303E-EVAL.
+      - Added example projects for STM32303S-EVAL.
+      - Updated all examples separating output folder for each target: "Debug" output folder "Debug" target, "Release" output folder for "Release" target.
+    </release>
+    <release version="2.0.0" date="2017-11-13">
+      This DFP requires STM32CubeMX V4.23.0 and STM32Cube_FW_F3 V1.9.0 or higher to be installed.
+      This packs contains a subset of the files from STM32Cube_FW_F3 version 1.9.0  (Drivers, STCube documentation and fonts).
+      Updated documentation for STM32Cube Framework usage.
+      - New projects require the component 'Device:STM32Cube Framework:STM32CubeMX' for configuration of pins and clocks.
+      Updated Device names:
+      - Device names now match STM32CubeMX database specifying the device package.
+      - Updated device documentation.
+      CMSIS Driver:
+      - Added CAN driver.
+      - Added I2C driver.
+      - Added SPI driver.
+      - Added UART/USART driver.
+      - Added USB Device driver.
+      Board support:
+      - Added Board Support Interfaces for STM32303C-EVAL, STM32373C-Eval, STM32F3-Discovery and STM32F334-Discovery Boards.
+      Example projects:
+      - Added CMSIS-RTOS2 Blinky, CAN, FileSystem, USB Device MassStorage, USB Device HID
+      Added BSP drivers for generic CubeMX targets: LED, Buttons.
+    </release>
+    <release version="1.4.0" date="2017-02-06">
+      Added STM32F334-Discovery basic board support and blinky RTX5 example.
+      Reworked STM32F3xx_OPT.s.
+      Updated SVD file STM32F334x.svd adding missing registers for ADC2.
+    </release>
+    <release version="1.3.0" date="2015-03-02">
+      Added devices: STM32F302xE, STM32F302xD, STM32F303xE, STM32F303xD.
+      Added device STM32F398VE.
+      Added device feature description.
+      Updated device support files.
+      Updated reference manuals, datasheets, errata sheets.
+      Reworked 'Conditions', 'Component Startup'.
+    </release>
+    <release version="1.2.0" date="2014-11-18">
+      Fixed device define for STM32F301 devices from "STM32F301x8" to "STM32F302x8"
+      Updated STM32373C-EVAL GLCD board support files.
+      Updated STM32373C-EVAL board description.
+    </release>
+    <release version="1.1.0" date="2014-10-01">
+      Device Support for STM32F301, STM32F302, STM32F303, STM32F3x4, STM32F3x8 and STM32F373 Device Subfamilies
+      - based on STM32F30x_DSP_StdPeriph_Lib_V1.2.0 and STM32F37x_DSP_StdPeriph_Lib_V1.0.0
+      Added: Board description, Board support for
+      - STMicroelectronics STM32F3-Discovery, STM32373C-EVAL and STM32303C-EVAL
+    </release>
+    <release version="1.0.1">
+      Updated: Device descriptions updated with features
+    </release>
+    <release version="1.0.0">
+      First Release version of STM32F3 Device Family Pack.
+    </release>
+  </releases>
+
+  <keywords>
+    <keyword>ST</keyword>
+    <keyword>Device Support</keyword>
+    <keyword>Device Family Package STMicroelectronics</keyword>
+    <keyword>STM32F3</keyword>
+    <keyword>STM32F3xx</keyword>
+  </keywords>
+
+  <devices>
+    <family Dfamily="STM32F3 Series" Dvendor="STMicroelectronics:13">
+      <processor Dcore="Cortex-M4" DcoreVersion="r0p1" Dfpu="1" Dmpu="1" Dendian="Little-endian" Ddsp="DSP"/>
+
+      <book name="https://developer.arm.com/documentation/dui0553/latest" title="Cortex-M4 Generic User Guide"/>
+
+      <description>
+High-performance STM32F3 MCUs with Arm Cortex-M4 core, MPU, DSP, FPU, 90 DMIPS at 72 MHz.
+      </description>
+
+      <sequences>
+        <!-- Override for Pre-Defined Sequences -->
+        <sequence name="DebugDeviceUnlock">
+          <block>
+            Sequence("CheckID");
+          </block>
+        </sequence>
+
+        <sequence name="DebugCoreStart">
+          <block>
+            // Replication of Standard Functionality
+            Write32(0xE000EDF0, 0xA05F0001);                                        // Enable Core Debug via DHCSR
+          </block>
+
+          <block info="DbgMCU registers">
+            Write32(0xE0042004, DbgMCU_CR);                                         // DBGMCU_CR: Configure MCU Debug
+            Write32(0xE0042008, DbgMCU_APB1_Fz);                                    // DBGMCU_APB1_FZ: Configure APB1 Peripheral Freeze Behavior
+            Write32(0xE004200C, DbgMCU_APB2_Fz);                                    // DBGMCU_APB2_FZ: Configure APB2 Peripheral Freeze Behavior
+          </block>
+        </sequence>
+
+        <sequence name="TraceStart">
+          <block>
+            __var traceSWO    = (__traceout &amp; 0x1) != 0;                        // SWO (asynchronous) Trace Selected?
+            __var traceTPIU   = (__traceout &amp; 0x2) != 0;                        // TPIU (synchronous) Trace Selected?
+          </block>
+
+          <control if="traceSWO">
+            <block>
+              Sequence("EnableTraceSWO");                                           // Call SWO Trace Setup
+            </block>
+          </control>
+
+          <control if="traceTPIU">
+            <block>
+              Sequence("EnableTraceTPIU");                                          // Call TPIU Trace Setup
+            </block>
+          </control>
+        </sequence>
+
+        <sequence name="TraceStop">
+          <block>
+            // Nothing required for SWO Trace
+            __var traceSWO    = (__traceout &amp; 0x1) != 0;                        // SWO enabled?
+            __var traceTPIU   = (__traceout &amp; 0x2) != 0;                        // Synchronous trace port enabled?
+          </block>
+
+          <control if="traceSWO">
+            <block>
+              Sequence("DisableTraceSWO");
+            </block>
+          </control>
+
+          <control if="traceTPIU">
+            <block>
+              Sequence("DisableTraceTPIU");
+            </block>
+          </control>
+        </sequence>
+
+        <!-- User-Defined Sequences -->
+        <sequence name="CheckID">
+          <block>
+            __var pidr1 = 0;
+            __var pidr2 = 0;
+            __var jep106id = 0;
+            __var ROMTableBase = 0;
+
+            __ap = 0;      // AHB-AP
+
+            ROMTableBase = ReadAP(0xF8) &amp; ~0x3;
+
+            pidr1 = Read32(ROMTableBase + 0x0FE4);
+            pidr2 = Read32(ROMTableBase + 0x0FE8);
+            jep106id = ((pidr2 &amp; 0x7) &lt;&lt; 4 ) | ((pidr1 &gt;&gt; 4) &amp; 0xF);
+          </block>
+
+          <control if="jep106id != 0x20">
+            <block>
+              Query(0, "Not a genuine ST Device! Abort connection", 1);
+              Message(2, "Not a genuine ST Device! Abort connection.");
+            </block>
+          </control>
+        </sequence>
+
+        <sequence name="EnableTraceSWO">
+          <block>
+            __var dbgmcu_val       = 0;                                                   // DBGMCU_CR Value
+            __var dbgmcu_trace_val = 0;                                                   // DBGMCU_CR Value
+
+            dbgmcu_val        = Read32(0xE0042004) &amp; (~0xE0);                         // Read DBGMCU_CR and clear trace setup
+            dbgmcu_trace_val  = (1 &lt;&lt; 5);                                           // Trace I/O Enable + Trace Mode Asynchronous
+
+            Sequence("ConfigureTraceSWOPin");
+          </block>
+
+          <block info="configure Trace I/O Enable + Trace Mode Asynchronous">
+            Write32(0xE0042004, dbgmcu_val | dbgmcu_trace_val);                           // Write DBGMCU_CR: Trace Settings
+          </block>
+        </sequence>
+
+        <sequence name="DisableTraceSWO">
+          <block>
+            __var dbgmcu_val       = 0;                                                   // DBGMCU_CR Value
+          </block>
+
+          <block info="unconfigure Trace I/O Enable + Trace Mode Asynchronous">
+            dbgmcu_val = Read32(0xE0042004) &amp; (~0xE0);                                // Read DBGMCU_CR and clear trace setup
+            Write32(0xE0042004, dbgmcu_val);                                              // Write DBGMCU_CR: Trace Settings
+          </block>
+        </sequence>
+
+        <sequence name="EnableTraceTPIU">
+          <block>
+            __var width            = (__traceout &amp; 0x003F0000) &gt;&gt; 16;
+            __var dbgmcu_val       = 0;                                                   // DBGMCU_CR Value
+            __var dbgmcu_trace_val = 0;                                                   // DBGMCU_CR Value
+
+            dbgmcu_val        = Read32(0xE0042004) &amp; (~0xE0);                         // Read DBGMCU_CR and clear trace setup
+
+            Sequence("ConfigureTraceTPIUPins");
+          </block>
+
+          <control if="width &gt;= 1" info="TPIU port width 1">
+            <block info="configure Trace I/O Enable + Trace Mode Synchronous 1 bit">
+              dbgmcu_trace_val  = (3 &lt;&lt; 5);
+            </block>
+          </control>
+
+          <control if="width &gt;= 2" info="TPIU port width 2">
+            <block info="configure Trace I/O Enable + Trace Mode Synchronous 2 bit">
+              dbgmcu_trace_val  = (5 &lt;&lt; 5);
+            </block>
+          </control>
+
+          <control if="width &gt;= 4" info="TPIU port width 4">
+            <block info="configure Trace I/O Enable + Trace Mode Synchronous 4 bit">
+              dbgmcu_trace_val  = (7 &lt;&lt; 5);
+            </block>
+          </control>
+
+          <block info="configure Trace I/O Enable + Trace Mode Asynchronous">
+            Write32(0xE0042004, dbgmcu_val | dbgmcu_trace_val);                           // Write DBGMCU_CR: Trace Settings
+          </block>
+        </sequence>
+
+        <sequence name="DisableTraceTPIU">
+          <block>
+            __var dbgmcu_val       = 0;                                                   // DBGMCU_CR Value
+          </block>
+
+          <block info="unconfigure Trace I/O Enable + Trace Mode Synchronous">
+            dbgmcu_val = Read32(0xE0042004) &amp; (~0xE0);                                // Read DBGMCU_CR and clear trace setup
+            Write32(0xE0042004, dbgmcu_val);                                              // Write DBGMCU_CR: Trace Settings
+          </block>
+        </sequence>
+
+        <sequence name="ConfigureTraceSWOPin">
+          <block>
+            __var pin     = 0;
+            __var port    = 0;
+            __var portAdr = 0;
+            __var pos     = 0;
+
+            __var SWO_Pin = 0x00010003;          // PB3
+          </block>
+
+          <!-- configure SWO -->
+          <block info="configure SWO">
+            pin     =               ((SWO_Pin            ) &amp; 0x0000FFFF);
+            port    =               ((SWO_Pin &gt;&gt; 16) &amp; 0x0000FFFF);
+            portAdr = 0x48000000 + (((SWO_Pin &gt;&gt; 16) &amp; 0x0000FFFF) * 0x400);
+
+            port = port + 17;       // adjust shift for register access
+            pos = pin * 2;
+            Write32(0x40021014,     ((Read32(0x40021014    )                         ) | (1 &lt;&lt; port)) );  // RCC_AHBENR:    IO port clock enable
+            Write32(portAdr + 0x00, ((Read32(portAdr + 0x00) &amp; ~( 3 &lt;&lt; pos)) | (2 &lt;&lt; pos )) );  // GPIOx_MODER:   Set Mode (Alternate Function)
+            Write32(portAdr + 0x08, ((Read32(portAdr + 0x08)                         ) | (3 &lt;&lt; pos )) );  // GPIOx_OSPEEDR: Set Speed (Very High Speed)
+            Write32(portAdr + 0x0C, ((Read32(portAdr + 0x0C) &amp; ~( 3 &lt;&lt; pos))                    ) );  // GPIOx_PUPDR:   Set I/O to no pull-up/pull-down
+          </block>
+          <control if="pin &lt;  8">
+            <block>
+              pos = ((pin    ) &amp; 7) * 4;
+              Write32(portAdr + 0x20, ((Read32(portAdr + 0x20) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRL:    Alternate Function to AF0
+            </block>
+          </control>
+          <control if="pin &gt;= 8">
+            <block>
+              pos = ((pin - 8) &amp; 7) * 4;
+              Write32(portAdr + 0x24, ((Read32(portAdr + 0x24) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRH:    Alternate Function to AF0
+            </block>
+          </control>
+        </sequence>
+
+        <sequence name="ConfigureTraceTPIUPins">
+          <block>
+            __var pin     = 8;
+            __var port    = 0;
+            __var portAdr = 0;
+            __var pos     = 0;
+
+            __var width   = (__traceout &amp; 0x003F0000) &gt;&gt; 16;
+          </block>
+
+          <!-- configure TRACECLK -->
+          <block info="configure TRACECLK">
+            pin     =                (TraceClk_Pin            ) &amp; 0x0000FFFF;
+            port    =                (TraceClk_Pin &gt;&gt; 16) &amp; 0x0000FFFF;
+            portAdr = 0x48000000 + (((TraceClk_Pin &gt;&gt; 16) &amp; 0x0000FFFF) * 0x400);
+
+            port = port + 17;       // adjust shift for register access
+            pos = pin * 2;
+            Write32(0x40021014,     ((Read32(0x40021014    )                         ) | (1 &lt;&lt; port)) );  // RCC_AHBENR:    IO port clock enable
+            Write32(portAdr + 0x00, ((Read32(portAdr + 0x00) &amp; ~( 3 &lt;&lt; pos)) | (2 &lt;&lt; pos )) );  // GPIOx_MODER:   Set Mode (Alternate Function)
+            Write32(portAdr + 0x08, ((Read32(portAdr + 0x08)                         ) | (3 &lt;&lt; pos )) );  // GPIOx_OSPEEDR: Set Speed (Very High Speed)
+            Write32(portAdr + 0x0C, ((Read32(portAdr + 0x0C) &amp; ~( 3 &lt;&lt; pos))                    ) );  // GPIOx_PUPDR:   Set I/O to no pull-up/pull-down
+          </block>
+          <control if="pin &lt;  8">
+            <block>
+              pos = ((pin    ) &amp; 7) * 4;
+              Write32(portAdr + 0x20, ((Read32(portAdr + 0x20) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRL:    Alternate Function to AF0
+            </block>
+          </control>
+          <control if="pin &gt;= 8">
+            <block>
+              pos = ((pin - 8) &amp; 7) * 4;
+              Write32(portAdr + 0x24, ((Read32(portAdr + 0x24) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRH:    Alternate Function to AF0
+            </block>
+          </control>
+
+          <control if="width &gt;= 1" info="TPIU port width 1">
+            <!-- configure TRACED0 -->
+            <block info="configure TRACED0">
+              pin     =                (TraceD0_Pin            ) &amp; 0x0000FFFF;
+              port    =                (TraceD0_Pin &gt;&gt; 16) &amp; 0x0000FFFF;
+              portAdr = 0x48000000 + (((TraceD0_Pin &gt;&gt; 16) &amp; 0x0000FFFF) * 0x400);
+
+              port = port + 17;       // adjust shift for register access
+              pos = pin * 2;
+              Write32(0x40021014,     ((Read32(0x40021014    )                         ) | (1 &lt;&lt; port)) );  // RCC_AHBENR:    IO port clock enable
+              Write32(portAdr + 0x00, ((Read32(portAdr + 0x00) &amp; ~( 3 &lt;&lt; pos)) | (2 &lt;&lt; pos )) );  // GPIOx_MODER:   Set Mode (Alternate Function)
+              Write32(portAdr + 0x08, ((Read32(portAdr + 0x08)                         ) | (3 &lt;&lt; pos )) );  // GPIOx_OSPEEDR: Set Speed (Very High Speed)
+              Write32(portAdr + 0x0C, ((Read32(portAdr + 0x0C) &amp; ~( 3 &lt;&lt; pos))                    ) );  // GPIOx_PUPDR:   Set I/O to no pull-up/pull-down
+            </block>
+            <control if="pin &lt;  8">
+              <block>
+                pos = ((pin    ) &amp; 7) * 4;
+                Write32(portAdr + 0x20, ((Read32(portAdr + 0x20) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRL:    Alternate Function to AF0
+              </block>
+            </control>
+            <control if="pin &gt;= 8">
+              <block>
+                pos = ((pin - 8) &amp; 7) * 4;
+                Write32(portAdr + 0x24, ((Read32(portAdr + 0x24) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRH:    Alternate Function to AF0
+              </block>
+            </control>
+          </control>
+
+          <control if="width &gt;= 2" info="TPIU port width 2">
+            <!-- configure TRACED1 -->
+            <block info="configure TRACED1">
+              pin     =                (TraceD1_Pin            ) &amp; 0x0000FFFF;
+              port    =                (TraceD1_Pin &gt;&gt; 16) &amp; 0x0000FFFF;
+              portAdr = 0x48000000 + (((TraceD1_Pin &gt;&gt; 16) &amp; 0x0000FFFF) * 0x400);
+
+              port = port + 17;       // adjust shift for register access
+              pos = pin * 2;
+              Write32(0x40021014,     ((Read32(0x40021014    )                         ) | (1 &lt;&lt; port)) );  // RCC_AHBENR:    IO port clock enable
+              Write32(portAdr + 0x00, ((Read32(portAdr + 0x00) &amp; ~( 3 &lt;&lt; pos)) | (2 &lt;&lt; pos )) );  // GPIOx_MODER:   Set Mode (Alternate Function)
+              Write32(portAdr + 0x08, ((Read32(portAdr + 0x08)                         ) | (3 &lt;&lt; pos )) );  // GPIOx_OSPEEDR: Set Speed (Very High Speed)
+              Write32(portAdr + 0x0C, ((Read32(portAdr + 0x0C) &amp; ~( 3 &lt;&lt; pos))                    ) );  // GPIOx_PUPDR:   Set I/O to no pull-up/pull-down
+            </block>
+            <control if="pin &lt;  8">
+              <block>
+                pos = ((pin    ) &amp; 7) * 4;
+                Write32(portAdr + 0x20, ((Read32(portAdr + 0x20) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRL:    Alternate Function to AF0
+              </block>
+            </control>
+            <control if="pin &gt;= 8">
+              <block>
+                pos = ((pin - 8) &amp; 7) * 4;
+                Write32(portAdr + 0x24, ((Read32(portAdr + 0x24) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRH:    Alternate Function to AF0
+              </block>
+            </control>
+          </control>
+
+          <control if="width &gt;= 4" info="TPIU port width 4">
+            <!-- configure TRACED2 -->
+            <block info="configure TRACED2">
+              pin     =                (TraceD2_Pin            ) &amp; 0x0000FFFF;
+              port    =                (TraceD2_Pin &gt;&gt; 16) &amp; 0x0000FFFF;
+              portAdr = 0x48000000 + (((TraceD2_Pin &gt;&gt; 16) &amp; 0x0000FFFF) * 0x400);
+
+              port = port + 17;       // adjust shift for register access
+              pos = pin * 2;
+              Write32(0x40021014,     ((Read32(0x40021014    )                         ) | (1 &lt;&lt; port)) );  // RCC_AHBENR:    IO port clock enable
+              Write32(portAdr + 0x00, ((Read32(portAdr + 0x00) &amp; ~( 3 &lt;&lt; pos)) | (2 &lt;&lt; pos )) );  // GPIOx_MODER:   Set Mode (Alternate Function)
+              Write32(portAdr + 0x08, ((Read32(portAdr + 0x08)                         ) | (3 &lt;&lt; pos )) );  // GPIOx_OSPEEDR: Set Speed (Very High Speed)
+              Write32(portAdr + 0x0C, ((Read32(portAdr + 0x0C) &amp; ~( 3 &lt;&lt; pos))                    ) );  // GPIOx_PUPDR:   Set I/O to no pull-up/pull-down
+            </block>
+            <control if="pin &lt;  8">
+              <block>
+                pos = ((pin    ) &amp; 7) * 4;
+                Write32(portAdr + 0x20, ((Read32(portAdr + 0x20) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRL:    Alternate Function to AF0
+              </block>
+            </control>
+            <control if="pin &gt;= 8">
+              <block>
+                pos = ((pin - 8) &amp; 7) * 4;
+                Write32(portAdr + 0x24, ((Read32(portAdr + 0x24) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRH:    Alternate Function to AF0
+              </block>
+            </control>
+
+            <!-- configure TRACED3 -->
+            <block info="configure TRACED3">
+              pin     =                (TraceD3_Pin            ) &amp; 0x0000FFFF;
+              port    =                (TraceD3_Pin &gt;&gt; 16) &amp; 0x0000FFFF;
+              portAdr = 0x48000000 + (((TraceD3_Pin &gt;&gt; 16) &amp; 0x0000FFFF) * 0x400);
+
+              port = port + 17;       // adjust shift for register access
+              pos = pin * 2;
+              Write32(0x40021014,     ((Read32(0x40021014    )                         ) | (1 &lt;&lt; port)) );  // RCC_AHBENR:    IO port clock enable
+              Write32(portAdr + 0x00, ((Read32(portAdr + 0x00) &amp; ~( 3 &lt;&lt; pos)) | (2 &lt;&lt; pos )) );  // GPIOx_MODER:   Set Mode (Alternate Function)
+              Write32(portAdr + 0x08, ((Read32(portAdr + 0x08)                         ) | (3 &lt;&lt; pos )) );  // GPIOx_OSPEEDR: Set Speed (Very High Speed)
+              Write32(portAdr + 0x0C, ((Read32(portAdr + 0x0C) &amp; ~( 3 &lt;&lt; pos))                    ) );  // GPIOx_PUPDR:   Set I/O to no pull-up/pull-down
+            </block>
+            <control if="pin &lt;  8">
+              <block>
+                pos = ((pin    ) &amp; 7) * 4;
+                Write32(portAdr + 0x20, ((Read32(portAdr + 0x20) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRL:    Alternate Function to AF0
+              </block>
+            </control>
+            <control if="pin &gt;= 8">
+              <block>
+                pos = ((pin - 8) &amp; 7) * 4;
+                Write32(portAdr + 0x24, ((Read32(portAdr + 0x24) &amp; ~(15 &lt;&lt; pos))                    ) );  // GPIOx_AFRH:    Alternate Function to AF0
+              </block>
+            </control>
+          </control>
+        </sequence>
+
+        <!-- default DebugPortStop extended with Option Byte Loading capability -->
+        <sequence name="DebugPortStop">
+          <block>
+            __var connectionFlash = ( __connection &amp; 0xF ) == 2 ;
+            __var FLASH_BASE = 0x40022000 ;
+            __var FLASH_CR = FLASH_BASE + 0x10 ;
+            __var OBL_LAUNCH_BIT = ( 1 &lt;&lt; 13 ) ;
+            __var FLASH_CR_Value = 0 ;
+            __var DoDebugPortStop = 1 ;
+            __var DP_CTRL_STAT = 0x4 ;
+            __var DP_SELECT = 0x8 ;
+          </block>
+      
+          <control if="connectionFlash &amp;&amp; DoOptionByteLoading">
+            <block>
+              DoDebugPortStop = 0 ;
+              FLASH_CR_Value = Read32( FLASH_CR ) ;
+              __errorcontrol = 1 ;
+              // write OBL_LAUNCH bit (causes a reset)
+              Write32( FLASH_CR, FLASH_CR_Value | ( OBL_LAUNCH_BIT ) ) ;
+              __errorcontrol = 0 ;
+            </block>
+          </control>
+          <control if="DoDebugPortStop">
+            <block>
+              // Switch to DP Register Bank 0
+              WriteDP(DP_SELECT, 0x00000000);
+              // Power Down Debug port
+              WriteDP(DP_CTRL_STAT, 0x00000000);
+            </block>
+          </control>
+        </sequence>
+      </sequences>
+
+      <!-- ************************  Subfamily 'STM32F301'  **************************** -->
+      <subFamily DsubFamily="STM32F301">
+        <processor Dclock="72000000"/>
+
+        <debugvars configfile="CMSIS/Debug/STM32F301_318.dbgconf" version="1.0.1">
+          __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+          __var DbgMCU_APB1_Fz = 0x40601811;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+          __var DbgMCU_APB2_Fz = 0x0000001D;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+          __var TraceClk_Pin   = 0x00040002;   // PE2
+          __var TraceD0_Pin    = 0x00040003;   // PE3
+          __var TraceD1_Pin    = 0x00040004;   // PE4
+          __var TraceD2_Pin    = 0x00040005;   // PE5
+          __var TraceD3_Pin    = 0x00040006;   // PE6
+          __var DoOptionByteLoading = 0;       // Disabled
+        </debugvars>
+
+        <book name="https://www.st.com/resource/en/reference_manual/rm0366-stm32f301x68-and-stm32f318x8-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F301x6/8 and STM32F318x8 Reference Manual"/>
+        <book name="https://www.st.com/resource/en/datasheet/stm32f301c6.pdf" title="STM32F301x6 STM32F301x8 Dataheet"/>
+        <book name="https://www.st.com/resource/en/errata_sheet/es0237-stm32f301x6x8-device-errata-stmicroelectronics.pdf" title="STM32F301x6 STM32F301x8 Errata Sheet"/>
+
+        <!-- *************************  Device 'STM32F301C6'  ************************** -->
+        <device Dname="STM32F301C6">
+          <compile define="STM32F301x8"/>
+          <debug svd="CMSIS/SVD/STM32F301.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F301C6Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+          <!-- <variant Dvariant="STM32F301C6Yx"> <feature type="CSP" n="49"/> </variant> not supported by STM32CubeMX -->
+        </device>
+
+        <!-- *************************  Device 'STM32F301C8'  ************************** -->
+        <device Dname="STM32F301C8">
+          <compile define="STM32F301x8"/>
+          <debug svd="CMSIS/SVD/STM32F301.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F301C8Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+          <variant Dvariant="STM32F301C8Yx">
+            <feature type="CSP" n="49"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F301K6'  ************************** -->
+        <device Dname="STM32F301K6">
+          <compile define="STM32F301x8"/>
+          <debug svd="CMSIS/SVD/STM32F301.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="24"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <!-- <variant Dvariant="STM32F301K6Tx"> <feature type="QFP" n="32"/> </variant> not supported by STM32CubeMX -->
+          <variant Dvariant="STM32F301K6Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F301K8'  ************************** -->
+        <device Dname="STM32F301K8">
+          <compile define="STM32F301x8"/>
+          <debug svd="CMSIS/SVD/STM32F301.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="24"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F301K8Tx">
+            <feature type="QFP" n="32"/>
+          </variant>
+          <variant Dvariant="STM32F301K8Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F301R6'  ************************** -->
+        <device Dname="STM32F301R6">
+          <compile define="STM32F301x8"/>
+          <debug svd="CMSIS/SVD/STM32F301.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F301R6Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F301R8'  ************************** -->
+        <device Dname="STM32F301R8">
+          <compile define="STM32F301x8"/>
+          <debug svd="CMSIS/SVD/STM32F301.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F301R8Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+      </subFamily>
+
+      <!-- ************************  Subfamily 'STM32F302'  **************************** -->
+      <subFamily DsubFamily="STM32F302">
+        <processor Dclock="72000000"/>
+
+        <debugvars configfile="CMSIS/Debug/STM32F302.dbgconf" version="1.0.1">
+          __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+          __var DbgMCU_APB1_Fz = 0x42601817;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+          __var DbgMCU_APB2_Fz = 0x0000001D;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+          __var TraceClk_Pin   = 0x00040002;   // PE2
+          __var TraceD0_Pin    = 0x00040003;   // PE3
+          __var TraceD1_Pin    = 0x00040004;   // PE4
+          __var TraceD2_Pin    = 0x00040005;   // PE5
+          __var TraceD3_Pin    = 0x00040006;   // PE6
+          __var DoOptionByteLoading = 0;       // Disabled
+        </debugvars>
+
+        <book name="https://www.st.com/resource/en/reference_manual/rm0365-stm32f302xbcde-and-stm32f302x68-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F302xB/C/D/E and STM32F302x6/8 Reference Manual"/>
+
+        <!-- *************************  Device 'STM32F302C6'  ************************** -->
+        <device Dname="STM32F302C6">
+          <compile define="STM32F302x8"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302r6.pdf" title="STM32F302x6 STM32F302x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0247-stm32f302x6x8-device-errata-stmicroelectronics.pdf" title="STM32F302x6 STM32F302x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302C6Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302C8'  ************************** -->
+        <device Dname="STM32F302C8">
+          <compile define="STM32F302x8"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302r6.pdf" title="STM32F302x6 STM32F302x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0247-stm32f302x6x8-device-errata-stmicroelectronics.pdf" title="STM32F302x6 STM32F302x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302C8Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+          <variant Dvariant="STM32F302C8Yx">
+            <feature type="CSP" n="49"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302CB'  ************************** -->
+        <device Dname="STM32F302CB">
+          <compile define="STM32F302xC"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302cb.pdf" title="STM32F302xB STM32F302xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0231-stm32f302xbc-device-limitations-stmicroelectronics.pdf" title="STM32F302xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="9"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302CBTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302CC'  ************************** -->
+        <device Dname="STM32F302CC">
+          <compile define="STM32F302xC"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x0000A000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302cb.pdf" title="STM32F302xB STM32F302xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0231-stm32f302xbc-device-limitations-stmicroelectronics.pdf" title="STM32F302xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="9"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302CCTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302K6'  ************************** -->
+        <device Dname="STM32F302K6">
+          <compile define="STM32F302x8"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302cb.pdf" title="STM32F302xB STM32F302xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0231-stm32f302xbc-device-limitations-stmicroelectronics.pdf" title="STM32F302xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="24"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302K6Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302K8'  ************************** -->
+        <device Dname="STM32F302K8">
+          <compile define="STM32F302x8"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302r6.pdf" title="STM32F302x6 STM32F302x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0247-stm32f302x6x8-device-errata-stmicroelectronics.pdf" title="STM32F302x6 STM32F302x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="24"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302K8Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302R6'  ************************** -->
+        <device Dname="STM32F302R6">
+          <compile define="STM32F302x8"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302r6.pdf" title="STM32F302x6 STM32F302x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0247-stm32f302x6x8-device-errata-stmicroelectronics.pdf" title="STM32F302x6 STM32F302x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302R6Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302R8'  ************************** -->
+        <device Dname="STM32F302R8">
+          <compile define="STM32F302x8"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302r6.pdf" title="STM32F302x6 STM32F302x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0247-stm32f302x6x8-device-errata-stmicroelectronics.pdf" title="STM32F302x6 STM32F302x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302R8Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302RB'  ************************** -->
+        <device Dname="STM32F302RB">
+          <compile define="STM32F302xC"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302cb.pdf" title="STM32F302xB STM32F302xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0231-stm32f302xbc-device-limitations-stmicroelectronics.pdf" title="STM32F302xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="16"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302RBTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302RC'  ************************** -->
+        <device Dname="STM32F302RC">
+          <compile define="STM32F302xC"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x0000A000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302cb.pdf" title="STM32F302xB STM32F302xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0231-stm32f302xbc-device-limitations-stmicroelectronics.pdf" title="STM32F302xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="16"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302RCTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302RD'  ************************** -->
+        <device Dname="STM32F302RD">
+          <compile define="STM32F302xE"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00060000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00060000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302re.pdf" title="STM32F302xD STM32F302xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0284-stm32f302xd-and-stm32f302xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F302xD STM32F302xE Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="16"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302RDTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302RE'  ************************** -->
+        <device Dname="STM32F302RE">
+          <compile define="STM32F302xE"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00080000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00080000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302re.pdf" title="STM32F302xD STM32F302xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0284-stm32f302xd-and-stm32f302xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F302xD STM32F302xE Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="16"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302RETx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302VB'  ************************** -->
+        <device Dname="STM32F302VB">
+          <compile  define="STM32F302xC"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302cb.pdf" title="STM32F302xB STM32F302xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0231-stm32f302xbc-device-limitations-stmicroelectronics.pdf" title="STM32F302xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="17"      m="12"/>
+          <feature type="IOs"           n="87"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302VBTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302VC'  ************************** -->
+        <device Dname="STM32F302VC">
+          <compile  define="STM32F302xC"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x0000A000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302cb.pdf" title="STM32F302xB STM32F302xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0231-stm32f302xbc-device-limitations-stmicroelectronics.pdf" title="STM32F302xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="17"      m="12"/>
+          <feature type="IOs"           n="87"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302VCTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F302VCYx">
+            <feature type="CSP" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302VD'  ************************** -->
+        <device Dname="STM32F302VD">
+          <compile define="STM32F302xE"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00060000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00060000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302re.pdf" title="STM32F302xD STM32F302xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0284-stm32f302xd-and-stm32f302xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F302xD STM32F302xE Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="17"      m="12"/>
+          <feature type="IOs"           n="86"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302VDTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F302VDHx">
+            <feature type="BGA" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302VE'  ************************** -->
+        <device Dname="STM32F302VE">
+          <compile define="STM32F302xE"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00080000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00080000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302re.pdf" title="STM32F302xD STM32F302xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0284-stm32f302xd-and-stm32f302xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F302xD STM32F302xE Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="17"      m="12"/>
+          <feature type="IOs"           n="86"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302VETx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F302VEHx">
+            <feature type="BGA" n="100"/>
+          </variant>
+        </device>
+
+        <!-- **************************  Device 'STM32F302ZD'  ************************** -->
+        <device Dname="STM32F302ZD">
+          <compile define="STM32F302xE"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00060000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00060000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302re.pdf" title="STM32F302xD STM32F302xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0284-stm32f302xd-and-stm32f302xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F302xD STM32F302xE Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="18"      m="12"/>
+          <feature type="IOs"           n="115"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F302ZDTx">
+            <feature type="QFP" n="144"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F302ZE'  ************************** -->
+        <device Dname="STM32F302ZE">
+          <compile define="STM32F302xE"/>
+          <debug svd="CMSIS/SVD/STM32F302.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00080000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00080000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f302re.pdf" title="STM32F302xD STM32F302xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0284-stm32f302xd-and-stm32f302xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F302xD STM32F302xE Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="18"      m="12"/>
+          <feature type="IOs"           n="115"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="2"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F302ZETx">
+            <feature type="QFP" n="144"/>
+          </variant>
+        </device>
+      </subFamily>
+
+      <!-- ************************  Subfamily 'STM32F303'  **************************** -->
+      <subFamily DsubFamily="STM32F303">
+        <processor Dclock="72000000"/>
+
+        <debugvars configfile="CMSIS/Debug/STM32F303_328_358_398.dbgconf" version="1.0.1">
+          __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+          __var DbgMCU_APB1_Fz = 0x42601837;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+          __var DbgMCU_APB2_Fz = 0x0000003F;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+          __var TraceClk_Pin   = 0x00040002;   // PE2
+          __var TraceD0_Pin    = 0x00040003;   // PE3
+          __var TraceD1_Pin    = 0x00040004;   // PE4
+          __var TraceD2_Pin    = 0x00040005;   // PE5
+          __var TraceD3_Pin    = 0x00040006;   // PE6
+          __var DoOptionByteLoading = 0;       // Disabled
+        </debugvars>
+
+        <book name="https://www.st.com/resource/en/reference_manual/rm0316-stm32f303xbcde-stm32f303x68-stm32f328x8-stm32f358xc-stm32f398xe-advanced-armbased-mcus-stmicroelectronics.pdf" title="STM32F303xB/C/D/E, STM32F303x6/8, STM32F328x8, STM32F358xC, STM32F398xE Reference Manual"/>
+
+        <!-- *************************  Device 'STM32F303C6'  ************************** -->
+        <device Dname="STM32F303C6">
+          <compile define="STM32F303x8"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303c6.pdf" title="STM32F303x6/x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0246-stm32f303x6x8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F303x6/x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="2"      m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303C6Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303C8'  ************************** -->
+        <device Dname="STM32F303C8">
+          <compile define="STM32F303x8"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303c6.pdf" title="STM32F303x6/x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0246-stm32f303x6x8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F303x6/x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303C8Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303CB'  ************************** -->
+        <device Dname="STM32F303CB">
+          <compile define="STM32F303xC"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x0000A000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00002000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303cb.pdf" title="STM32F303xB STM32F303xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0204-stm32f303xbc-device-errata-stmicroelectronics.pdf" title="STM32F303xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2S"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303CBTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303CC'  ************************** -->
+        <device Dname="STM32F303CC">
+          <compile define="STM32F303xC"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x0000A000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00002000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303cb.pdf" title="STM32F303xB STM32F303xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0204-stm32f303xbc-device-errata-stmicroelectronics.pdf" title="STM32F303xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303CCTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303K6'  ************************** -->
+        <device Dname="STM32F303K6">
+          <compile define="STM32F303x8"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303c6.pdf" title="STM32F303x6/x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0246-stm32f303x6x8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F303x6/x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="9"       m="12"/>
+          <feature type="IOs"           n="25"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="2"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303K6Tx">
+            <feature type="QFP" n="32"/>
+          </variant>
+          <variant Dvariant="STM32F303K6Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303K8'  ************************** -->
+        <device Dname="STM32F303K8">
+          <compile define="STM32F303x8"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303c6.pdf" title="STM32F303x6/x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0246-stm32f303x6x8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F303x6/x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="9"       m="12"/>
+          <feature type="IOs"           n="24"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="2"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303K8Tx">
+            <feature type="QFP" n="32"/>
+          </variant>
+          <variant Dvariant="STM32F303K8Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303R6'  ************************** -->
+        <device Dname="STM32F303R6">
+          <compile define="STM32F303x8"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303c6.pdf" title="STM32F303x6/x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0246-stm32f303x6x8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F303x6/x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="21"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="2"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303R6Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303R8'  ************************** -->
+        <device Dname="STM32F303R8">
+          <compile define="STM32F303x8"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303c6.pdf" title="STM32F303x6/x8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0246-stm32f303x6x8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F303x6/x8 Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="21"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="2"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303R8Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303RB'  ************************** -->
+        <device Dname="STM32F303RB">
+          <compile define="STM32F303xC"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x0000A000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00002000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303cb.pdf" title="STM32F303xB STM32F303xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0204-stm32f303xbc-device-errata-stmicroelectronics.pdf" title="STM32F303xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="22"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303RBTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303RC'  ************************** -->
+        <device Dname="STM32F303RC">
+          <compile define="STM32F303xC"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x0000A000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00002000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303cb.pdf" title="STM32F303xB STM32F303xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0204-stm32f303xbc-device-errata-stmicroelectronics.pdf" title="STM32F303xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="22"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303RCTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303RD'  ************************** -->
+        <device Dname="STM32F303RD">
+          <compile define="STM32F303xE"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00060000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00010000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00004000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00060000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303re.pdf" title="STM32F303xD STM32F303xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0261-stm32f303xd-stm32f303xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F303xD STM32F303xE Errata Sheet"/>
+
+          <feature type="Timer"         n="10"      m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="22"      m="12"/>
+          <feature type="IOs"           n="53"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="3"/>
+          <feature type="USART"         n="5"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303RDTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303RE'  ************************** -->
+        <device Dname="STM32F303RE">
+          <compile define="STM32F303xE"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00080000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00010000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00004000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00080000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303re.pdf" title="STM32F303xD STM32F303xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0261-stm32f303xd-stm32f303xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F303xD STM32F303xE Errata Sheet"/>
+
+          <feature type="Timer"         n="10"      m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="22"      m="12"/>
+          <feature type="IOs"           n="53"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303RETx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303VB'  ************************** -->
+        <device Dname="STM32F303VB">
+          <compile define="STM32F303xC"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x0000A000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00002000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303cb.pdf" title="STM32F303xB STM32F303xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0204-stm32f303xbc-device-errata-stmicroelectronics.pdf" title="STM32F303xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="39"      m="12"/>
+          <feature type="IOs"           n="87"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303VBTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303VC'  ************************** -->
+        <device Dname="STM32F303VC">
+          <compile define="STM32F303xC"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x0000A000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00002000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303cb.pdf" title="STM32F303xB STM32F303xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0204-stm32f303xbc-device-errata-stmicroelectronics.pdf" title="STM32F303xB/C Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="39"      m="12"/>
+          <feature type="IOs"           n="87"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303VCTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F303VCYx">
+            <feature type="CSP" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303VD'  ************************** -->
+        <device Dname="STM32F303VD">
+          <compile define="STM32F303xE"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00060000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00010000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00004000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00060000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303re.pdf" title="STM32F303xD STM32F303xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0261-stm32f303xd-stm32f303xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F303xD STM32F303xE Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="39"      m="12"/>
+          <feature type="IOs"           n="86"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303VDTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F303VDHx">
+            <feature type="BGA" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303VE'  ************************** -->
+        <device Dname="STM32F303VE">
+          <compile define="STM32F303xE"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00080000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00010000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00004000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00080000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303re.pdf" title="STM32F303xD STM32F303xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0261-stm32f303xd-stm32f303xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F303xD STM32F303xE Errata Sheet"/>
+
+          <feature type="Timer"         n="10"      m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="39"      m="12"/>
+          <feature type="IOs"           n="86"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="5"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303VETx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F303VEHx">
+            <feature type="BGA" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F303VEYx">
+            <feature type="CSP" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303ZD'  ************************** -->
+        <device Dname="STM32F303ZD">
+          <compile define="STM32F303xE"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00060000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00010000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00004000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00060000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303re.pdf" title="STM32F303xD STM32F303xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0261-stm32f303xd-stm32f303xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F303xD STM32F303xE Errata Sheet"/>
+
+          <feature type="Timer"         n="10"      m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="40"      m="12"/>
+          <feature type="IOs"           n="115"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="UART"          n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F303ZDTx">
+            <feature type="QFP" n="144"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F303ZE'  ************************** -->
+        <device Dname="STM32F303ZE">
+          <compile define="STM32F303xE"/>
+          <debug svd="CMSIS/SVD/STM32F303.svd"/>
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00080000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00010000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00004000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00080000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/datasheet/stm32f303re.pdf" title="STM32F303xD STM32F303xE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0261-stm32f303xd-stm32f303xe-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F303xD STM32F303xE Errata Sheet"/>
+
+          <feature type="Timer"         n="10"      m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="40"      m="12"/>
+          <feature type="IOs"           n="116"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="5"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F303ZETx">
+            <feature type="QFP" n="144"/>
+          </variant>
+        </device>
+      </subFamily>
+
+      <!-- ************************  Subfamily 'STM32F373'  **************************** -->
+      <subFamily DsubFamily="STM32F373">
+        <processor Dclock="72000000"/>
+
+        <debugvars configfile="CMSIS/Debug/STM32F37x.dbgconf" version="1.0.1">
+          __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+          __var DbgMCU_APB1_Fz = 0x02601BFF;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+          __var DbgMCU_APB2_Fz = 0x0000003C;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+          __var TraceClk_Pin   = 0x00040002;   // PE2
+          __var TraceD0_Pin    = 0x00040003;   // PE3
+          __var TraceD1_Pin    = 0x00040004;   // PE4
+          __var TraceD2_Pin    = 0x00040005;   // PE5
+          __var TraceD3_Pin    = 0x00040006;   // PE6
+          __var DoOptionByteLoading = 0;       // Disabled
+        </debugvars>
+
+        <book name="https://www.st.com/resource/en/reference_manual/rm0313-stm32f37xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F37xx Reference Manual"/>
+        <book name="https://www.st.com/resource/en/datasheet/stm32f373cc.pdf" title="STM32F373xx Datasheet"/>
+        <book name="https://www.st.com/resource/en/errata_sheet/es0189-stm32f373xx-device-limitations-stmicroelectronics.pdf" title="STM32F373xx Errata Sheet"/>
+
+        <!-- *************************  Device 'STM32F373C8'  ************************** -->
+        <device Dname="STM32F373C8">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="36"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F373C8Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373CB'  ************************** -->
+        <device Dname="STM32F373CB">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00006000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="36"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F373CBTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373CC'  ************************** -->
+        <device Dname="STM32F373CC">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="36"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F373CCTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373R8'  ************************** -->
+        <device Dname="STM32F373R8">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F373R8Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373RB'  ************************** -->
+        <device Dname="STM32F373RB">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00006000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F373RBTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373RC'  ************************** -->
+        <device Dname="STM32F373RC">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F373RCTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373V8'  ************************** -->
+        <device Dname="STM32F373V8">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="84"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F373V8Tx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F373V8Hx">
+            <feature type="BGA" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373VB'  ************************** -->
+        <device Dname="STM32F373VB">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00020000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00006000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00020000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="84"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F373VBTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F373VBHx">
+            <feature type="BGA" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F373VC'  ************************** -->
+        <device Dname="STM32F373VC">
+          <compile define="STM32F373xC"/>
+          <debug svd="CMSIS/SVD/STM32F373.svd"/>
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"       m="16"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="84"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F373VCTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+          <variant Dvariant="STM32F373VCHx">
+            <feature type="BGA" n="100"/>
+          </variant>
+        </device>
+      </subFamily>
+
+      <!-- ************************  Subfamily 'STM32F3x4'  **************************** -->
+      <subFamily DsubFamily="STM32F3x4">
+        <processor Dclock="72000000"/>
+
+        <debugvars configfile="CMSIS/Debug/STM32F334.dbgconf" version="1.0.1">
+          __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+          __var DbgMCU_APB1_Fz = 0x02201833;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+          __var DbgMCU_APB2_Fz = 0x0000011D;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+          __var TraceClk_Pin   = 0x00040002;   // PE2
+          __var TraceD0_Pin    = 0x00040003;   // PE3
+          __var TraceD1_Pin    = 0x00040004;   // PE4
+          __var TraceD2_Pin    = 0x00040005;   // PE5
+          __var TraceD3_Pin    = 0x00040006;   // PE6
+          __var DoOptionByteLoading = 0;       // Disabled
+        </debugvars>
+
+        <book name="https://www.st.com/resource/en/reference_manual/rm0364-stm32f334xx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F334xx Reference Manual"/>
+        <book name="https://www.st.com/resource/en/datasheet/stm32f334k4.pdf" title="STM32F334x4 STM32F334x6 STM32F334x8 Datasheet"/>
+        <book name="https://www.st.com/resource/en/errata_sheet/es0258-stm32f334x4x6x8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F334x4/x6/x8 Errata Sheet"/>
+
+        <!-- *************************  Device 'STM32F334C4'  ************************** -->
+        <device Dname="STM32F334C4">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00004000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="2"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F334C4Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F334C6'  ************************** -->
+        <device Dname="STM32F334C6">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="Timer"         n="1"                   name="High Resolution Timer"/>
+          <feature type="ADC"           n="15"      m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F334C6Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F334C8'  ************************** -->
+        <device Dname="STM32F334C8">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="Timer"         n="1"                   name="High Resolution Timer"/>
+          <feature type="ADC"           n="2"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F334C8Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+          <variant Dvariant="STM32F334C8Yx">
+            <feature type="CSP" n="49"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F334K4'  ************************** -->
+        <device Dname="STM32F334K4">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00004000" default="1" startup="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="2"       m="12"/>
+          <feature type="IOs"           n="24"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="2"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="1055"/>
+
+          <variant Dvariant="STM32F334K4Tx">
+            <memory name="SRAM"    access="rwx"           start="0x20000000" size="0x00003000" default="1"/>
+            <memory name="CCM_RAM" access="rwx"           start="0x10000000" size="0x00001000" default="0"/>
+
+            <feature type="QFP" n="32"/>
+          </variant>
+          <variant Dvariant="STM32F334K4Ux">
+            <memory name="SRAM"    access="rwx"           start="0x20000000" size="0x00003000" default="1"/>
+            <memory name="CCM_RAM" access="rwx"           start="0x10000000" size="0x00001000" default="0"/>
+
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F334K6'  ************************** -->
+        <device Dname="STM32F334K6">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="Timer"         n="1"                   name="High Resolution Timer"/>
+          <feature type="ADC"           n="2"      m="12"/>
+          <feature type="IOs"           n="25"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="2"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F334K6Tx">
+            <feature type="QFP" n="32"/>
+          </variant>
+          <variant Dvariant="STM32F334K6Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F334K8'  ************************** -->
+        <device Dname="STM32F334K8">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="Timer"         n="1"                   name="High Resolution Timer"/>
+          <feature type="ADC"           n="2"      m="12"/>
+          <feature type="IOs"           n="25"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="2"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F334K8Tx">
+            <feature type="QFP" n="32"/>
+          </variant>
+          <variant Dvariant="STM32F334K8Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F334R6'  ************************** -->
+        <device Dname="STM32F334R6">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00008000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="Timer"         n="1"                   name="High Resolution Timer"/>
+          <feature type="ADC"           n="4"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F334R6Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F334R8'  ************************** -->
+        <device Dname="STM32F334R8">
+          <compile define="STM32F334x8"/>
+          <debug svd="CMSIS/SVD/STM32F3x4.svd"/>
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash"   access="rx"              start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"    access="rwx"             start="0x20000000" size="0x00003000" default="1"/>
+          <memory name="CCM_RAM" access="rwx"             start="0x10000000" size="0x00001000" default="0"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="Timer"         n="1"                   name="High Resolution Timer"/>
+          <feature type="ADC"           n="4"      m="12"/>
+          <feature type="IOs"           n="51"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="105"/>
+
+          <variant Dvariant="STM32F334R8Tx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+      </subFamily>
+
+      <!-- ************************  Subfamily 'STM32F3x8'  **************************** -->
+      <subFamily DsubFamily="STM32F3x8">
+        <processor Dclock="72000000"/>
+
+        <!-- *************************  Device 'STM32F318C8'  ************************** -->
+        <device Dname="STM32F318C8">
+          <compile define="STM32F318xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F301_318.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x40601811;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000001D;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0366-stm32f301x68-and-stm32f318x8-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F301x6/8 and STM32F318x8 Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f318c8.pdf" title="STM32F318C8 STM32F318K8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0257-stm32f318c8k8-device-errata-stmicroelectronics.pdf" title="STM32F318C8 STM32F318K8 Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F318C8Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+          <variant Dvariant="STM32F318C8Yx">
+            <feature type="CSP" n="49"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F318K8'  ************************** -->
+        <device Dname="STM32F318K8">
+          <compile define="STM32F318xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F301_318.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x40601811;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000001D;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0366-stm32f301x68-and-stm32f318x8-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F301x6/8 and STM32F318x8 Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f318c8.pdf" title="STM32F318C8 STM32F318K8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0257-stm32f318c8k8-device-errata-stmicroelectronics.pdf" title="STM32F318C8 STM32F318K8 Errata Sheet"/>
+
+          <feature type="Timer"         n="5"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="24"/>
+          <feature type="DAC"           n="1"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="2"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F318K8Ux">
+            <feature type="QFN" n="32"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F328C8'  ************************** -->
+        <device Dname="STM32F328C8">
+          <compile define="STM32F328xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F303_328_358_398.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x42601837;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003F;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00010000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00004000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0316-stm32f303xbcde-stm32f303x68-stm32f328x8-stm32f358xc-stm32f398xe-advanced-armbased-mcus-stmicroelectronics.pdf" title="STM32F303xB/C/D/E, STM32F303x6/8, STM32F328x8, STM32F358xC, STM32F398xE Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f328c8.pdf" title="STM32F328C8 Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0260-stm32f328c8-rev-z-device-limitations-stmicroelectronics.pdf" title="STM32F328C8 Errata Sheet"/>
+
+          <feature type="Timer"         n="7"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="2"       m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="AnalogOther"   n="1"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="1"/>
+          <feature type="I2C"           n="1"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F328C8Tx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F358CC'  ************************** -->
+        <device Dname="STM32F358CC">
+          <compile define="STM32F358xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F303_328_358_398.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x42601837;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003F;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x0000C000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0316-stm32f303xbcde-stm32f303x68-stm32f328x8-stm32f358xc-stm32f398xe-advanced-armbased-mcus-stmicroelectronics.pdf" title="STM32F303xB/C/D/E, STM32F303x6/8, STM32F328x8, STM32F358xC, STM32F398xE Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f358cc.pdf" title="STM32F358xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0232-stm32f358xc-device-limitations-stmicroelectronics.pdf" title="STM32F358xC Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="4"      m="12"/>
+          <feature type="IOs"           n="37"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="USART"         n="5"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F358CCTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F358RC'  ************************** -->
+        <device Dname="STM32F358RC">
+          <compile define="STM32F358xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F303_328_358_398.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x42601837;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003F;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x0000A000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0316-stm32f303xbcde-stm32f303x68-stm32f328x8-stm32f358xc-stm32f398xe-advanced-armbased-mcus-stmicroelectronics.pdf" title="STM32F303xB/C/D/E, STM32F303x6/8, STM32F328x8, STM32F358xC, STM32F398xE Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f358cc.pdf" title="STM32F358xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0232-stm32f358xc-device-limitations-stmicroelectronics.pdf" title="STM32F358xC Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="4"      m="12"/>
+          <feature type="IOs"           n="53"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="USART"         n="5"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F358RCTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F358VC'  ************************** -->
+        <device Dname="STM32F358VC">
+          <compile define="STM32F358xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F303_328_358_398.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x42601837;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003F;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x0000A000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0316-stm32f303xbcde-stm32f303x68-stm32f328x8-stm32f358xc-stm32f398xe-advanced-armbased-mcus-stmicroelectronics.pdf" title="STM32F303xB/C/D/E, STM32F303x6/8, STM32F328x8, STM32F358xC, STM32F398xE Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f358cc.pdf" title="STM32F358xC Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0232-stm32f358xc-device-limitations-stmicroelectronics.pdf" title="STM32F358xC Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="4"      m="12"/>
+          <feature type="IOs"           n="88"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="2"/>
+          <feature type="USART"         n="5"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F358VCTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F378CC'  ************************** -->
+        <device Dname="STM32F378CC">
+          <compile define="STM32F378xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F37x.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x02601BFF;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003C;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0313-stm32f37xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F37xx Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f378cc.pdf" title="STM32F378xx Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0230-stm32f378xx-device-limitations-stmicroelectronics.pdf" title="STM32F378xx Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="36"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F378CCTx">
+            <feature type="QFP" n="48"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F378RC'  ************************** -->
+        <device Dname="STM32F378RC">
+          <compile define="STM32F378xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F37x.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x02601BFF;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003C;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <sequences>
+            <sequence name="EnableTraceTPIU"  info="ETM not available, not enough pins"> </sequence>
+            <sequence name="DisableTraceTPIU" info="ETM not available, not enough pins"> </sequence>
+          </sequences>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0313-stm32f37xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F37xx Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f378cc.pdf" title="STM32F378xx Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0230-stm32f378xx-device-limitations-stmicroelectronics.pdf" title="STM32F378xx Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"      m="16"/>
+          <feature type="ADC"           n="1"      m="12"/>
+          <feature type="IOs"           n="52"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F378RCTx">
+            <feature type="QFP" n="64"/>
+          </variant>
+          <variant Dvariant="STM32F378RCYx">
+            <feature type="CSP" n="64"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F378VC'  ************************** -->
+        <device Dname="STM32F378VC">
+          <compile define="STM32F378xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F37x.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x02601BFF;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003C;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00040000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00008000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_256.FLM" start="0x08000000" size="0x00040000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0313-stm32f37xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" title="STM32F37xx Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f378cc.pdf" title="STM32F378xx Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0230-stm32f378xx-device-limitations-stmicroelectronics.pdf" title="STM32F378xx Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="2"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="3"       m="16"/>
+          <feature type="ADC"           n="1"       m="12"/>
+          <feature type="IOs"           n="84"/>
+          <feature type="DAC"           n="3"       m="12"/>
+          <feature type="SPI"           n="3"/>
+          <feature type="I2C"           n="2"/>
+          <feature type="I2S"           n="2"/>
+          <feature type="USART"         n="3"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F378VCTx">
+            <feature type="QFP" n="100"/>
+          </variant>
+        </device>
+
+        <!-- *************************  Device 'STM32F398VE'  ************************** -->
+        <device Dname="STM32F398VE">
+          <compile define="STM32F398xx"/>
+          <debug svd="CMSIS/SVD/STM32F3x8.svd"/>
+
+          <debugvars configfile="CMSIS/Debug/STM32F303_328_358_398.dbgconf" version="1.0.1">
+            __var DbgMCU_CR      = 0x00000007;   // DBGMCU_CR: DBG_SLEEP, DBG_STOP, DBG_STANDBY
+            __var DbgMCU_APB1_Fz = 0x42601837;   // DGBMCU_APB1_FZ: Configure APB1 peripheral freeze behavior
+            __var DbgMCU_APB2_Fz = 0x0000003F;   // DGBMCU_APB2_FZ: Configure APB2 peripheral freeze behavior
+            __var TraceClk_Pin   = 0x00040002;   // PE2
+            __var TraceD0_Pin    = 0x00040003;   // PE3
+            __var TraceD1_Pin    = 0x00040004;   // PE4
+            __var TraceD2_Pin    = 0x00040005;   // PE5
+            __var TraceD3_Pin    = 0x00040006;   // PE6
+            __var DoOptionByteLoading = 0;       // Disabled
+          </debugvars>
+
+          <memory name="Flash" access="rx"                start="0x08000000" size="0x00080000" default="1" startup="1"/>
+          <memory name="SRAM"  access="rwx"               start="0x20000000" size="0x00010000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_512.FLM" start="0x08000000" size="0x00080000" default="1"/>
+          <algorithm name="CMSIS/Flash/STM32F3xx_OPT.FLM" start="0x1FFFF800" size="0x00000010" default="0"/>
+
+          <book name="https://www.st.com/resource/en/reference_manual/rm0316-stm32f303xbcde-stm32f303x68-stm32f328x8-stm32f358xc-stm32f398xe-advanced-armbased-mcus-stmicroelectronics.pdf" title="STM32F303xB/C/D/E, STM32F303x6/8, STM32F328x8, STM32F358xC, STM32F398xE Reference Manual"/>
+          <book name="https://www.st.com/resource/en/datasheet/stm32f398ve.pdf" title="STM32F398VE Datasheet"/>
+          <book name="https://www.st.com/resource/en/errata_sheet/es0297-stm32f398ve-rev-y-device-limitations-stmicroelectronics.pdf" title="STM32F398VE Errata Sheet"/>
+
+          <feature type="Timer"         n="9"       m="16"      name="IC/OC/PWM"/>
+          <feature type="Timer"         n="1"       m="32"      name="IC/OC/PWM"/>
+          <feature type="WDT"           n="2"/>
+          <feature type="RTC"           n="32768"/>
+          <feature type="ADC"           n="39"      m="12"/>
+          <feature type="IOs"           n="88"/>
+          <feature type="DAC"           n="2"       m="12"/>
+          <feature type="AnalogOther"   n="4"                   name="Operational Amplifier"/>
+          <feature type="SPI"           n="4"/>
+          <feature type="I2C"           n="3"/>
+          <feature type="USART"         n="5"/>
+          <feature type="USBD"          n="1"/>
+          <feature type="CAN"           n="1"/>
+          <feature type="VCC"           n="2.00"    m="3.60"/>
+          <feature type="Temp"          n="-40"     m="85"/>
+
+          <variant Dvariant="STM32F398VETx">
+            <feature type="QFP" n="100"/>
+          </variant>
+        </device>
+      </subFamily>
+
+    </family>
+
+  </devices>
+
+  <conditions>
+    <!-- Device Conditions -->
+    <condition id="STM32F3">
+      <description>STMicroelectronics STM32F3 Series devices</description>
+      <require Dvendor="STMicroelectronics:13" Dname="STM32F3*"/>
+    </condition>
+
+    <!-- Device + CMSIS Conditions -->
+    <condition id="STM32F3 CMSIS">
+      <description>STMicroelectronics STM32F3 Device and CMSIS-CORE</description>
+      <require condition="STM32F3"/>
+      <require Cclass="CMSIS" Cgroup="CORE"/>
+    </condition>
+
+  </conditions>
+
+  <components>
+    <!-- CubeMX Generator -->
+    <component generator="CubeMX" Cclass="Device" Cgroup="CubeMX" Cversion="1.0.0" condition="STM32F3 CMSIS">
+      <description>Configuration via STM32CubeMX</description>
+      <RTE_Components_h>
+        #define RTE_DEVICE_CUBE_MX
+        #define CMSIS_device_header "stm32f3xx.h"
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="https://open-cmsis-pack.github.io/cmsis-toolbox/CubeMX/"/>
+      </files>
+    </component>
+  </components>
+
+  <csolution>
+    <!-- CubeMX Basic CMSIS Solution template -->
+    <template name="CubeMX Basic solution" path="Templates/CubeMX" file="CubeMX.csolution.yml" condition="STM32F3">
+      <description>Create a CubeMX basic solution with project</description>
+    </template>
+
+  </csolution>
+</package>
