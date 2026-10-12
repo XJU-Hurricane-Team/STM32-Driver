@@ -49,4 +49,4 @@
 
 ## 代码版本
 
-sample_board是旧版本；DT35(CubeMX)是使用模板的新版本。
+sample_board是旧版本；DT35(CubeMX)(V2)是使用模板的新版本。
