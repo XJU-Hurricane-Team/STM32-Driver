@@ -1,8 +1,0 @@
-.git
-.git/*
-<projectOutputFolder>
-<projectOutputFolder>/
-*.eide-template
-*.log
-.DS_Store
-__MACOSX__
