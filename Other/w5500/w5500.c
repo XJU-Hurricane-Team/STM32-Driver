@@ -2,8 +2,15 @@
  * @file    w5500.c
  * @author  xinglu
  * @brief   W5500 以太网芯片驱动
- * @version 1.0
- * @date    2026-10-11
+ * @version 1.1
+ * @date    2026-10-25
+ * @copyright Copyright (c) 2026
+ *
+ * @par 版本更迭
+ * - 1.0 (2026-10-11)：初始版本，提供 W5500 初始化、链路查询及 TCP/UDP 通信接口。
+ * - 1.1 (2026-10-25)：初始化时软件接管 PHY，配置 10/100M 全能力自动协商，
+ *   执行 PHY 软件复位并校验配置；新增 W5500_GetPhyConfig() 接口及
+ *   W5500_ERROR_PHY 错误码。
  */
 
 #include "w5500.h"
@@ -27,6 +34,10 @@
 #define REG_SIPR              0x000FU
 #define REG_PHYCFGR           0x002EU
 #define REG_VERSIONR          0x0039U
+
+/* PHYCFGR：软件接管模式，启用 10/100M 全能力自动协商，释放复位。 */
+#define PHY_AUTONEG_CONFIG    0xF8U
+#define PHY_RESET_RELEASE     0x80U
 
 /* Socket 寄存器偏移。实际寄存器块编号由 socket_reg_block() 计算 */
 #define SN_MR                 0x0000U
@@ -233,13 +244,21 @@ W5500_Status W5500_GetVersion(uint8_t *version) {
     return read8(REG_VERSIONR, 0U, version);
 }
 
+/** 读取完整 PHY 配置和状态；低三位是实时的双工、速率与链路状态 */
+W5500_Status W5500_GetPhyConfig(uint8_t *phy_config) {
+    if (phy_config == NULL) {
+        return W5500_ERROR_ARGUMENT;
+    }
+    return read8(REG_PHYCFGR, 0U, phy_config);
+}
+
 /** 读取 PHYCFGR 的 LINK 位，转换为 0/1 输出 */
 W5500_Status W5500_GetLinkStatus(uint8_t *link_up) {
     uint8_t phy = 0U;
     if (link_up == NULL) {
         return W5500_ERROR_ARGUMENT;
     }
-    W5500_Status status = read8(REG_PHYCFGR, 0U, &phy);
+    W5500_Status status = W5500_GetPhyConfig(&phy);
     if (status == W5500_OK) {
         *link_up = (uint8_t)((phy & 0x01U) != 0U);
     }
@@ -247,7 +266,7 @@ W5500_Status W5500_GetLinkStatus(uint8_t *link_up) {
 }
 
 /**
- * @brief 复位芯片，确认版本后设置 socket 缓冲区和静态网络参数
+ * @brief 复位芯片，配置 PHY 自动协商、socket 缓冲区和静态网络参数
  * @details 分别将每个 socket 的 Sn_RXBUF_SIZE/Sn_TXBUF_SIZE 设为 2（单位 KiB），
  *          与后续使用 0x07FF 掩码和 2 KiB 边界的环形缓冲区读写逻辑相匹配
  */
@@ -280,6 +299,27 @@ W5500_Status W5500_Init(const W5500_NetworkConfig *config) {
             return W5500_ERROR_VERSION;
         }
         HAL_Delay(1U);
+    }
+
+    /* 先软件接管 PHY 并设置自动协商，再通过 RST 位复位使配置生效。
+     * 不依赖模块 PMODE 引脚；MR 软件复位不能代替这里的 PHY 复位。
+     */
+    status = write8(REG_PHYCFGR, 0U, PHY_AUTONEG_CONFIG);
+    if (status != W5500_OK) return status;
+    status = write8(REG_PHYCFGR, 0U,
+                    (uint8_t)(PHY_AUTONEG_CONFIG & ~PHY_RESET_RELEASE));
+    if (status != W5500_OK) return status;
+    HAL_Delay(1U);
+    status = write8(REG_PHYCFGR, 0U, PHY_AUTONEG_CONFIG);
+    if (status != W5500_OK) return status;
+    HAL_Delay(1U);
+
+    /* 只校验可写配置位，忽略会随协商结果变化的低三位。 */
+    uint8_t phy = 0U;
+    status = W5500_GetPhyConfig(&phy);
+    if (status != W5500_OK) return status;
+    if ((phy & PHY_AUTONEG_CONFIG) != PHY_AUTONEG_CONFIG) {
+        return W5500_ERROR_PHY;
     }
 
     /* 每路 RX/TX 各分配 2 KiB；大小寄存器位于各 socket 自己的寄存器块 */
