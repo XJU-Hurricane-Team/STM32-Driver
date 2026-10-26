@@ -1,11 +1,12 @@
 # W5500 驱动说明
 
-驱动使用 STM32 HAL 的 SPI1 与 W5500 通信，提供静态 IPv4 配置、TCP 服务端和 UDP 收发接口。当前战队的 micro-ROS UDP transport 也基于此驱动。
+本文档对应本目录中的 `w5500.c` / `w5500.h`，适用于仓库的 STM32G474 工程。驱动使用 STM32 HAL 的 SPI1 与 W5500 通信，提供静态 IPv4 配置、TCP 服务端和 UDP 收发接口。当前 micro-ROS UDP transport 也基于此驱动。
 
 ## 文件与依赖
 
 - `w5500.h`：公开状态码、网络配置结构和驱动 API。
 - `w5500.c`：SPI 帧、寄存器访问、芯片初始化、socket 操作和收发缓冲区管理。
+- 依赖工程生成的 `main.h`（CS GPIO 定义）和 `spi.h`（`hspi1`）。
 - CS 使用 `W5500_CS_GPIO_Port` / `W5500_CS_Pin`，由驱动在每笔 SPI 帧开始时拉低、结束时拉高。
 - SPI 必须在调用驱动前完成 HAL 初始化，并配置为与板上 W5500 兼容的 SPI 模式和时钟。
 
@@ -17,7 +18,9 @@ W5500 的 8 个 socket 各自配置 2 KiB TX 和 2 KiB RX 缓冲区。数据读�
 
 ## 初始化
 
-调用 `W5500_Init()` 前，应确保 SPI1 和 CS GPIO 已初始化。传入 MAC、IP、子网掩码和网关；驱动软件复位芯片，等待版本寄存器读到 `0x04`，设置所有 socket 缓冲区大小，再写入静态网络参数。该函数不执行 DHCP，也不等待或要求网线链路已经建立。
+调用 `W5500_Init()` 前，应确保 SPI1 和 CS GPIO 已初始化。传入 MAC、IP、子网掩码和网关；驱动软件复位芯片，等待版本寄存器读到 `0x04`，通过 `PHYCFGR` 软件接管 PHY 并启用 10/100M 全能力自动协商，再设置所有 socket 缓冲区大小并写入静态网络参数。该函数不执行 DHCP，也不等待或要求网线链路已经建立。
+
+PHY 配置按 `0xF8 → 0x78 → 0xF8` 顺序写入，设置模式后拉低并释放 PHY 复位位，不依赖模块的 `PMODE` 引脚。初始化会读回并校验高五位，低三位为实时状态，不参与配置校验；配置不匹配返回 `W5500_ERROR_PHY`。
 
 ```c
 static const W5500_NetworkConfig net = {
@@ -35,14 +38,17 @@ if (status != W5500_OK) {
 
 之后可用 `W5500_GetVersion()` 读取芯片版本，用 `W5500_GetLinkStatus()` 查询 PHY 链路状态；后者成功时输出 `0`（断开）或 `1`（已连接）。链路状态是物理连接状态，不代表远端服务可达。
 
+当前 micro-ROS 启动任务每 100 ms 读取一次 `PHYCFGR`，最多等待 10 秒建立链路。可在调试器中监视 `W5500_TestPhyConfig`（建议按十六进制显示）和 `W5500_TestLink`。超时会打印完整 PHY 状态，设置 `W5500_TestStatus = W5500_ERROR_TIMEOUT` 并挂起任务，不继续创建 micro-ROS 会话。接通链路后需复位开发板重新启动。
+
 ## API 概览
 
 socket 编号范围为 `0..7`。端口参数使用主机序整数，例如十进制 `8888`。
 
 | API | 用途与行为 |
 | --- | --- |
-| `W5500_Init(config)` | 复位、检查版本、配置缓冲区和静态 IPv4 参数。 |
+| `W5500_Init(config)` | 复位、检查版本、配置 PHY 自动协商、缓冲区和静态 IPv4 参数。 |
 | `W5500_GetVersion(&version)` | 读取芯片版本寄存器。 |
+| `W5500_GetPhyConfig(&phy_config)` | 读取完整 PHYCFGR 配置和状态。 |
 | `W5500_GetLinkStatus(&link_up)` | 查询 PHY 链路状态。 |
 | `W5500_TcpServerStart(socket, port)` | 关闭并清理 socket，配置 TCP、本地端口，然后进入监听。成功以状态寄存器确认监听状态。 |
 | `W5500_TcpServerPoll(socket)` | 检查服务端 socket 状态；连接断开或 socket 关闭后按记录端口重新监听。建议由应用周期调用。 |
@@ -66,6 +72,7 @@ socket 编号范围为 `0..7`。端口参数使用主机序整数，例如十进
 | `W5500_ERROR_TIMEOUT` | 等待芯片命令、发送完成或缓冲区资源超时。 |
 | `W5500_ERROR_VERSION` | 初始化等待版本号 `0x04` 超时。 |
 | `W5500_ERROR_SOCKET` | socket 状态未达到接口要求，或状态无法恢复。 |
+| `W5500_ERROR_PHY` | PHY 软件配置读回值不匹配。 |
 
 `W5500_TcpReceive()` 和 `W5500_UdpReceiveFrom()` 返回 `int32_t`：正数是收到的字节数，`0` 表示当前没有可读数据，负数为对应 `W5500_Status` 的相反数（例如 `-W5500_ERROR_SPI`）。UDP 接收一次处理一个数据报；若数据报长度超过调用方 `capacity`，驱动读取并丢弃超出部分，以保持 RX 队列同步。
 
