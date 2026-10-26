@@ -1,9 +1,9 @@
 # IO_Link_Master
 
-基于 **STM32F103C6 + L6360 + SICK DT35** 的 IO-Link 主站测距方案：通过 IO-Link 接口周期读取 DT35 激光距离传感器的距离值，经串口（USART2）以二进制大端格式上报给主板。
+基于 **STM32F103C8T6 + L6360 + SICK DT35** 的 IO-Link 主站测距方案：通过 IO-Link 接口周期读取 DT35 激光距离传感器的距离值，经串口（USART2）以二进制大端格式上报给主板。
 
-- 芯片：STM32F103C6（Keil MDK-ARM 工程：`MDK-ARM/IO_Link_Master.uvprojx`）
-- 传感器：SICK DT35（IO-Link 从站，COM3 = 230.4 kbit/s）
+- 芯片：STM32F103C8T6（Keil MDK-ARM 工程：`MDK-ARM/IO_Link_Master.uvprojx`）
+- 传感器：SICK DT35（IO-Link 从站，COM2 = 38.4 kbit/s）
 - 收发器：ST L6360（IO-Link 主站 PHY，寄存器经 I2C1 配置，C/Q 数据经 USART1 收发）
 
 ---
@@ -12,7 +12,7 @@
 
 ```
 ┌──────┐  IO-Link C/Q线   ┌───────┐  USART1  ┌─────────────┐
-│ DT35 │ ◄──────────────► │ L6360 │ ◄──────► │ STM32F103C6 │
+│ DT35 │ ◄──────────────► │ L6360 │ ◄──────► │ STM32F103C8T6│
 │(从站) │  M-sequence      │(PHY)  │  字节收发 │  数据链路层   │
 └──────┘                  └───────┘          └──────┬──────┘
                                                     │ USART2
