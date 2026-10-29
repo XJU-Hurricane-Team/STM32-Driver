@@ -103,7 +103,7 @@ LED 为 L6360 板载 LED1/LED2，经 I2C 寄存器（`L6360_LED_x_MSB/LSB`）驱
 | `uint8_t L6360_Set_Led(uint8_t id, LED_Mode_t mode)` | 控制 LED1/LED2：ON / OFF / SLOW_BLINK / FAST_BLINK |
 | `uint8_t L6360_Set_EN_CQ / Set_EN_LPlus / Set_RST(uint8_t)`、`void L6360_Reset(void)` | C/Q 通道、L+ 电源、复位控制 |
 
-### 3.4 串口发送与扩展 `main.c` / `usart_ex.h`
+### 3.4 串口发送与扩展 `main.c` 
 
 | 函数 | 说明 |
 |------|------|
