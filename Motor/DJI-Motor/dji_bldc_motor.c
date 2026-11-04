@@ -34,8 +34,9 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
     motor_point->angle = (uint16_t)((can_msg[0] << 8) | can_msg[1]);
 
     if (!(motor_point->got_offset)) {
-        /* 获取上电电机初始角度 */
-        motor_point->offset_angle = motor_point->angle;
+        /* 首帧初始化计圈状态，并按所选基准记录偏移 */
+        motor_point->offset_angle =
+            motor_point->zero_mode == DJI_ZERO_FIRST_FRAME ? motor_point->angle : 0;
         motor_point->last_angle = motor_point->angle;
         motor_point->got_offset = true;
         motor_point->round_cnt = 0;
@@ -82,30 +83,32 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
                                motor_point->angle - motor_point->offset_angle;
 
     /**
-     * 对于 3508 与 2006, 是轴的相对位置 (上电后为 0
+     * 对于 3508 与 2006, 是轴的相对位置 (默认首帧为 0
      * 度，角度会累加，已经除过减速比); rotor_degree = 总角度 (total_angle) /
-     * (减速比 * 8192) * 360 对于 6020, 是绝对位置 (0 ~ 360) 6020 的减速比为 1,
-     * 8192 就是 360 度，所以 rotor_degree = 当前角度 (angle) / 8192 / 360 =
-     * angle / 22.75
+     * (减速比 * 8192) * 360。对于 6020, 编码器零点模式使用单圈角度,
+     * 首帧零点模式使用累计角度；减速比为 1, 8192 个计数对应 360 度。
      */
     switch (motor_point->motor_model) {
 #if (DJI_MOTOR_USE_M3508_2006 == 1)
         case DJI_M3508: {
-            /* 3508 减速比 1:19 */
+            /* 3508 减速比可能会不同，故修改为宏定义 */
             motor_point->rotor_degree =
-                (float)(motor_point->total_angle) / (19.0f * 8192.0f) * 360.0f;
+                (float)(motor_point->total_angle) / (GEAR_RATIO_M3508 * 8192.0f) * 360.0f;
         } break;
 
         case DJI_M2006: {
             /* 2006 减速比 1:36 */
             motor_point->rotor_degree =
-                (float)(motor_point->total_angle) / (36.0f * 8192.0f) * 360.0f;
+                (float)(motor_point->total_angle) / (GEAR_RATIO_M2006 * 8192.0f) * 360.0f;
         } break;
 #endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
 #if (DJI_MOTOR_USE_GM6020 == 1)
         case DJI_GM6020: {
-            motor_point->rotor_degree = (float)(motor_point->angle) / 22.75f;
+            motor_point->rotor_degree =
+                (float)(motor_point->zero_mode == DJI_ZERO_FIRST_FRAME
+                            ? motor_point->total_angle : motor_point->angle) /
+                8192.0f * 360.0f;
         } break;
 #endif /* DJI_MOTOR_USE_GM6020 == 1 */
 
@@ -118,21 +121,24 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
  * @brief 初始化电机
  *
  * @param motor 电机结构体指针
- * @param motor_model 电机型号 `DJI_M3508 或 DJI_M2006`, 关系到减速比与角度
+ * @param motor_model 电机型号
  * @param can_id CAN ID
  * @param can_select 选择哪一个 CAN 来通信
+ * @param zero_mode DJI_ZERO_FIRST_FRAME 或 DJI_ZERO_ENCODER
  * @return 初始化状态:
  * @retval - 0: 成功
  * @retval - 1: `motor`指针为空
  * @retval - 2: 添加 CAN 接收表错误
  */
-uint8_t dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
-                       dji_can_id_t can_id, can_selected_t can_select) {
+uint8_t dji_motor_init_impl(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
+                           dji_can_id_t can_id, can_selected_t can_select,
+                           dji_motor_zero_mode_t zero_mode) {
     if (motor == NULL) {
         return 1;
     }
 
     motor->motor_model = motor_model;
+    motor->zero_mode = zero_mode;
     motor->got_offset = false;
     motor->can_select = can_select;
     if (can_list_add_new_node(can_select, (void *)motor, can_id, 0x7FF,

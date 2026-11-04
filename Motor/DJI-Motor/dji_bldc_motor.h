@@ -23,7 +23,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <CSP_Config.h>
+#include <cubemx.h>
 
 #include <stdbool.h>
 
@@ -36,6 +36,9 @@ extern "C" {
 
 #define DJI_MOTOR_GROUP1 0x200 /* M3508/2006 标识符 */
 #define DJI_MOTOR_GROUP2 0x1FF /* M3508/2006 标识符 */
+
+#define GEAR_RATIO_M3508 (3591.0f / 187.0f)       /* 3508 正常减速比为 1:19 */
+#define GEAR_RATIO_M2006 36.0f                  /* 2006 正常减速比为 1:36*/
 
 #endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
@@ -57,6 +60,12 @@ typedef enum {
     DJI_M2006 = 0x01, /*!< M2006 电机 */
     DJI_GM6020 = 0x02 /*!< GM6020 电机 */
 } dji_motor_model_t;
+
+/** @brief 角度零点基准 */
+typedef enum {
+    DJI_ZERO_FIRST_FRAME = 0, /*!< 以初始化后的首帧位置为零点 */
+    DJI_ZERO_ENCODER          /*!< 使用编码器零点，不扣除首帧偏移 */
+} dji_motor_zero_mode_t;
 
 /**
  * @brief CAN ID 定义
@@ -109,19 +118,20 @@ typedef struct {
     /* 共用参数 */
     uint8_t hall; /*!< 可能是霍尔传感器值 */
 
+    dji_motor_zero_mode_t zero_mode; /*!< 角度零点基准 */
     bool got_offset;       /*!< 上电以后获取一次角度偏移 */
     uint16_t offset_angle; /*!< 上电后角度初始位置 */
 
     uint16_t last_angle; /*!< 上次角度 */
     uint16_t angle;      /*!< 角度，绝对角度，一圈为 8192 */
-    int32_t total_angle; /*!< 上电以后为 0 点，以此为基准的总角度 */
+    int32_t total_angle; /*!< 相对所选零点的累计角度，单位为编码器计数 */
     int32_t round_cnt;  /*!< 圈数计数 */
     float rotor_degree; /*!< 转子角度
                              对于 3508 与 2006, 是轴的相对位置.
-                             上电后为 0 度，轴转一圈为 360, 0 (360)
+                             默认首帧为 0 度，轴转一圈为 360, 0 (360)
                              度附近不会跳变. 角度会累加，已经除过减速比； 对于
-                             6020, 是绝对位置 (0 ~ 360). 上电后不为 0,
-                             角度不会累加，0 (360) 度附近会跳变. */
+                             6020, DJI_ZERO_ENCODER 使用编码器单圈绝对位置 (0 ~ 360),
+                             选择 DJI_ZERO_FIRST_FRAME 时为首帧归零的累计角度 */
 
     int16_t set_value; /*!< 设置的值，电压或电流值 */
     int16_t speed_rpm; /*!< 速度 */
@@ -131,8 +141,17 @@ typedef struct {
     can_selected_t can_select;     /*!< 选择 CAN 通信 */
 } dji_motor_handle_t;
 
-uint8_t dji_motor_init(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
-                       dji_can_id_t can_id, can_selected_t can_select);
+uint8_t dji_motor_init_impl(dji_motor_handle_t *motor, dji_motor_model_t motor_model,
+                           dji_can_id_t can_id, can_selected_t can_select,
+                           dji_motor_zero_mode_t zero_mode);
+
+/* 四参数默认首帧归零，五参数显式指定零点模式。
+ * 取前五个参数；末尾的 0 保证辅助宏的可变参数非空，兼容 C99。 */
+#define DJI_INIT_ARGS(motor, model, id, can, zero, ...) \
+    motor, model, id, can, zero
+#define dji_motor_init(...) \
+    dji_motor_init_impl(DJI_INIT_ARGS(__VA_ARGS__, DJI_ZERO_FIRST_FRAME, 0))
+
 uint8_t dji_motor_deinit(dji_motor_handle_t *motor);
 
 #if (DJI_MOTOR_USE_M3508_2006 == 1)

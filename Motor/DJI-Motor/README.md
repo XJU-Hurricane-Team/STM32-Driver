@@ -9,6 +9,7 @@ https://www.robomaster.com/zh-CN/products/components/general/M2006
 # 依赖
 
 - `can`
+- `can_list`
 
 # 使用
 
@@ -33,16 +34,17 @@ typedef struct {
     float real_current;    /*!< 实际电流 */
     int16_t given_current; /*!< 期望电流，M3508 电机才会赋值 */
 
-    int32_t total_angle; /*!< 上电以后为 0 点，以此为基准的总角度 */
+    int32_t total_angle; /*!< 相对所选零点的累计角度，单位为编码器计数 */
 
-    uint16_t offset_angle; /*!< 上电后角度初始位置 */
-    bool got_offset;       /*!< 上电以后获取一次角度偏移 */
+    uint16_t offset_angle; /*!< 首帧位置偏移，编码器零点模式下为 0 */
+    bool got_offset;       /*!< 首帧角度与计圈状态已初始化 */
 
     /* GM6020 参数 */
     int16_t torque_current; /*!< 实际转矩电流 */
     uint8_t temperature;    /*!< 温度 */
 
     /* 共用参数 */
+    dji_motor_zero_mode_t zero_mode; /*!< 角度零点基准 */
     dji_can_id_t motor_id; /*!< 电机 ID */
     int16_t set_value;     /*!< 设置的值，电压或电流值 */
     uint16_t last_angle;   /*!< 上次角度 */
@@ -54,10 +56,11 @@ typedef struct {
                              对于 3508 与 2006, 是轴的相对位置.
                               上电后为 0 度，轴转一圈为 360, 0 (360) 度附近不会跳变.
                               角度会累加，已经除过减速比；
-                             对于 6020, 是绝对位置 (0 ~ 360).
-                              上电后不为 0, 角度不会累加，0 (360) 度附近会跳变. */
+                             对于 6020, DJI_ZERO_ENCODER 为编码器单圈位置 [0, 360),
+                              DJI_ZERO_FIRST_FRAME 为首帧归零后的累计角度. */
 
     dji_motor_model_t motor_model; /*!< 电机型号 */
+    can_selected_t can_select;     /*!< 选择 CAN 通信 */
 } dji_motor_handle_t;
 ```
 
@@ -66,20 +69,33 @@ typedef struct {
 ## 函数方法
 
 - `dji_motor_init` 初始化电机，需要指定句柄、型号、ID (`dji_can_id_t` 枚举)、CAN1 或者 CAN2
+  - 三种型号均可传四个参数，默认以初始化后的首帧位置为零点。
+  - 第五个参数可显式指定 `DJI_ZERO_ENCODER`（编码器零点）或 `DJI_ZERO_FIRST_FRAME`（首帧零点）。这是软件角度基准选择，不会向电机写入或保存原点。
+  - 省略第五个参数时由宏补入 `DJI_ZERO_FIRST_FRAME`，再调用固定五参数函数 `dji_motor_init_impl`，不使用运行时可变参数。
 - `dji_motor_deinit` 反初始化电机
 - `dji_motor_set_current`M3508/2006 设置电流
   - `can_select`CAN1 或者 CAN2
   - `can_identify` 控制标识符，`DJI_MOTOR_GROUP1` 或者 `DJI_MOTOR_GROUP2`
-- `dji_gm6020_set_voltage`GM6020 电机电压控制
+- `dji_gm6020_voltage_control`GM6020 电机电压控制
   - `can_select`CAN1 或者 CAN2
   - `can_identify` 控制标识符，`DJI_GM6020_VOLTAGE_GROUP1` 或者 `DJI_GM6020_VOLTAGE_GROUP2`
-- `dji_gm6020_set_current`GM6020 电机电流控制
+- `dji_gm6020_current_control`GM6020 电机电流控制
   - `can_select`CAN1 或者 CAN2
   - `can_identify` 控制标识符，`DJI_GM6020_CURRENT_GROUP1` 或者 `DJI_GM6020_CURRENT_GROUP2`
 
 由于大疆的电机的 CAN 报文中没有针对单个电机设置电流，因此不提供单电机控制。可以自行编写。
 
 # 示例
+
+GM6020 初始化示例（CAN 接收表已建立）：
+
+```c
+dji_motor_handle_t gm6020 = {0};
+dji_motor_init(&gm6020, DJI_GM6020, CAN_GM6020_ID1,
+               can1_selected, DJI_ZERO_ENCODER);
+```
+
+若需要以首帧位置为零点并累计角度，可省略最后一个参数，或传入 `DJI_ZERO_FIRST_FRAME`。
 
 这里使用 ARM DSP 库的 pid。
 
