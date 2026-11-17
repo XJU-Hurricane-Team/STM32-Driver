@@ -17,7 +17,7 @@ https://www.robomaster.com/zh-CN/products/components/general/M2006
 2. 将 `dji_bldc_motor.c` 添加到工程的 `Bsp` 分组中
 3. 在 `bsp.h` 中包含 `dji_bldc_motor.h`
 4. 如果只使用特定型号的电机，可以在 `dji_bldc_motor.h` 中通过 `DJI_MOTOR_USE_M3508_2006` 和 `DJI_MOTOR_USE_GM6020` 宏来选择是否使用这些型号
- 
+
 # API
 
 ## 结构体对象
@@ -26,39 +26,36 @@ https://www.robomaster.com/zh-CN/products/components/general/M2006
 ```
 /**
  * @brief 电机参数
+ * @note 只启用部分型号时，对应型号的字段会被宏裁掉。
  */
 typedef struct {
     /* 3508/2006 参数 */
-    uint8_t hall; /*!< 可能是霍尔传感器值 */
-
-    float real_current;    /*!< 实际电流 */
-    int16_t given_current; /*!< 期望电流，M3508 电机才会赋值 */
-
-    int32_t total_angle; /*!< 相对所选零点的累计角度，单位为编码器计数 */
-
-    uint16_t offset_angle; /*!< 零位对应的编码器计数，范围 0 ~ 8191 */
-    bool got_offset;       /*!< 首帧角度与计圈状态已初始化 */
+    float real_current;    /*!< 转矩电流 Iq（A），3508: ±20 A，2006: ±10 A */
 
     /* GM6020 参数 */
-    int16_t torque_current; /*!< 实际转矩电流 */
-    uint8_t temperature;    /*!< 温度 */
+    int16_t torque_current; /*!< 实际转矩电流（原始值，±16384 对应 ±3 A） */
 
     /* 共用参数 */
-    bool zero_from_first_frame; /*!< 是否以初始化后的首帧位置为零点 */
-    dji_can_id_t motor_id; /*!< 电机 ID */
-    int16_t set_value;     /*!< 设置的值，电压或电流值 */
-    uint16_t last_angle;   /*!< 上次角度 */
-    uint16_t angle;        /*!< 角度，绝对角度，一圈为 8192 */
-    int16_t speed_rpm;     /*!< 速度 */
-    int32_t round_cnt;     /*!< 圈数计数 */
+    uint8_t hall; /*!< 保留字段，原 DATA[6]，目前不赋值 */
 
-    float rotor_degree; /*!< 转子角度
-                             对于 3508 与 2006, 是轴的相对位置.
-                              默认首帧为 0 度，轴转一圈为 360, 0 (360) 度附近不会跳变.
-                              角度会累加，已经除过减速比；
-                             对于 6020, 显式 offset 为相对该零位的单圈位置 [0, 360),
-                              省略 offset 为首帧归零后的累计角度. */
+    bool zero_from_first_frame; /*!< 是否把上电首帧位置当作 0 位 */
+    bool got_offset;       /*!< 首帧角度与计圈状态已初始化 */
+    uint16_t offset_angle; /*!< 零位对应的编码器计数，范围 0 ~ 8191 */
 
+    uint16_t last_angle; /*!< 上一次回调的转子单圈计数 */
+    uint16_t angle;      /*!< 当前回调的转子单圈编码器计数，0 ~ 8191 */
+    int32_t total_angle; /*!< 相对零位的转子累计编码器计数 */
+    int32_t round_cnt;   /*!< 转子圈数计数 */
+    float rotor_degree;  /*!< 输出轴角度
+                              3508/2006：相对首帧回调读到数据的累计角，已除减速比；
+                              6020：显式 offset 时为相对该零位的单圈角 [0, 360)，
+                              省略 offset 时把上电首帧获取的数据当作 0 位并累计 */
+
+    int16_t set_value; /*!< 设置的值（电流或电压），应用层使用 */
+    int16_t speed_rpm; /*!< 转子转速（RPM）；3508/2006 需除减速比得输出轴转速 */
+
+    uint8_t temperature;    /*!< 温度（℃），3508/6020 有效，2006 无反馈 */
+    dji_can_id_t motor_id;  /*!< 电机 ID */
     dji_motor_model_t motor_model; /*!< 电机型号 */
     can_selected_t can_select;     /*!< 选择 CAN 通信 */
 } dji_motor_handle_t;
@@ -69,18 +66,18 @@ typedef struct {
 ## 函数方法
 
 - `dji_motor_init` 初始化电机，需要指定句柄、型号、ID (`dji_can_id_t` 枚举)、CAN1 或者 CAN2
-  - 三种型号均可传四个参数，默认以初始化后的首帧位置为零点。
+  - 三种型号均可传四个参数，默认把上电首帧位置当作 0 位。6020 上电即有单圈绝对位置，省略 offset 只是把这个首帧读数定义为 0；3508/2006 的编码器在转子侧，输出多圈位置需要这个首帧参考。
   - 第五个参数为 `int32_t offset`，单位为转子编码器计数（一圈 8192），零位设在“编码器原点 + offset”处，即反馈角度减去 offset。传 `0` 使用编码器原点；支持正负值，按单圈归一化。这是软件角度偏移，不会向电机写入或保存原点。
   - 省略第五个参数时由宏补入专用标记 `DJI_OFFSET_AUTO`（`INT32_MIN`，不作为普通偏移值），再调用固定五参数函数 `dji_motor_init_impl`，不使用运行时可变参数。
 - `dji_motor_deinit` 反初始化电机
-- `dji_motor_set_current`M3508/2006 设置电流
-  - `can_select`CAN1 或者 CAN2
+- `dji_motor_set_current` M3508/2006 设置电流
+  - `can_select` CAN1 或者 CAN2
   - `can_identify` 控制标识符，`DJI_MOTOR_GROUP1` 或者 `DJI_MOTOR_GROUP2`
-- `dji_gm6020_voltage_control`GM6020 电机电压控制
-  - `can_select`CAN1 或者 CAN2
+- `dji_gm6020_voltage_control` GM6020 电机电压控制
+  - `can_select` CAN1 或者 CAN2
   - `can_identify` 控制标识符，`DJI_GM6020_VOLTAGE_GROUP1` 或者 `DJI_GM6020_VOLTAGE_GROUP2`
-- `dji_gm6020_current_control`GM6020 电机电流控制
-  - `can_select`CAN1 或者 CAN2
+- `dji_gm6020_current_control` GM6020 电机电流控制
+  - `can_select` CAN1 或者 CAN2
   - `can_identify` 控制标识符，`DJI_GM6020_CURRENT_GROUP1` 或者 `DJI_GM6020_CURRENT_GROUP2`
 
 由于大疆的电机的 CAN 报文中没有针对单个电机设置电流，因此不提供单电机控制。可以自行编写。
@@ -95,7 +92,7 @@ dji_motor_init(&gm6020, DJI_GM6020, CAN_GM6020_ID1,
                can1_selected, 2048); /* 编码器 2048 处为零位 */
 ```
 
-上述 GM6020 在编码器值为 2048 时反馈 0°，4096 时反馈 90°，1024 时反馈 315°。若需要以首帧位置为零点并累计角度，省略最后一个参数即可；显式传 `0` 与省略参数含义不同。
+上述 GM6020 在编码器值为 2048 时反馈 0°，4096 时反馈 90°，1024 时反馈 315°。若需要把上电首帧位置当作 0 位并累计角度，省略最后一个参数即可；显式传 `0` 与省略参数含义不同（6020 上电本身知道单圈绝对位置，省略 offset 只是软件上把首帧读数定义为 0）。
 
 这里使用 ARM DSP 库的 pid。
 
@@ -104,7 +101,7 @@ int main(void) {
     bsp_init();
 
     /* 声明大疆电机参数句柄 */
-    dji_motor_handle_t m3508;
+    dji_motor_handle_t m3508 = {0};
 
     /* 定义 pid 结构体 */
     arm_pid_instance_f32 speed_pid = {

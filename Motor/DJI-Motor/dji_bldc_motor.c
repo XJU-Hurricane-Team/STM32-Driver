@@ -1,6 +1,6 @@
 /**
  * @file    dji_bldc_motor.c
- * @author  Deadline039
+ * @author  Deadline039 Jackrainman
  * @brief   M3508, M2006 直流无刷电机驱动
  * @version 1.5
  * @date    2024-03-02
@@ -45,33 +45,6 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
 
     motor_point->speed_rpm = (int16_t)((can_msg[2] << 8) | can_msg[3]);
 
-    switch (motor_point->motor_model) {
-#if (DJI_MOTOR_USE_M3508_2006 == 1)
-        case DJI_M3508: {
-            motor_point->real_current =
-                (int16_t)((can_msg[4] << 8) | can_msg[5]) * (20.0f / 16384.0f);
-            motor_point->temperature = can_msg[6];
-        } break;
-
-        case DJI_M2006: {
-            motor_point->real_current =
-                (int16_t)((can_msg[4] << 8) | can_msg[5]) * (10.0f / 10000.0f);
-            motor_point->temperature = 0; /* C610 无温度反馈 */
-        } break;
-#endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
-
-#if (DJI_MOTOR_USE_GM6020 == 1)
-        case DJI_GM6020: {
-            motor_point->torque_current =
-                (int16_t)((can_msg[4] << 8) | can_msg[5]);
-            motor_point->temperature = can_msg[6];
-        } break;
-#endif /* DJI_MOTOR_USE_GM6020 == 1 */
-
-        default: {
-        } break;
-    }
-
     if (motor_point->angle - motor_point->last_angle > 4096) {
         --(motor_point->round_cnt);
     } else if (motor_point->angle - motor_point->last_angle < -4096) {
@@ -82,20 +55,27 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
                                motor_point->angle - motor_point->offset_angle;
 
     /**
-     * 对于 3508 与 2006, 是轴的相对位置 (默认首帧为 0
-     * 度，角度会累加，已经除过减速比); rotor_degree = 总角度 (total_angle) /
-     * (减速比 * 8192) * 360。对于 6020, 显式 offset 使用扣除偏移后的单圈角度,
-     * 省略 offset 使用首帧归零的累计角度；减速比为 1, 8192 个计数对应 360 度。
+     * 型号相关的反馈量与输出轴角度
+     * 3508/2006: rotor_degree = total_angle / (减速比 * 8192) * 360,
+     *            角度相对首帧/offset 累计，已经除过减速比。
+     * 6020: 显式 offset 时取扣除偏移后的单圈角 [0, 360); 省略 offset
+     *       时取把上电首帧当作 0 位的累计角；减速比为 1, 8192 个计数对应 360 度。
      */
     switch (motor_point->motor_model) {
 #if (DJI_MOTOR_USE_M3508_2006 == 1)
         case DJI_M3508: {
+            motor_point->real_current =
+                (int16_t)((can_msg[4] << 8) | can_msg[5]) * (20.0f / 16384.0f);
+            motor_point->temperature = can_msg[6];
             /* 3508 减速比可能会不同，故修改为宏定义 */
             motor_point->rotor_degree =
                 (float)(motor_point->total_angle) / (GEAR_RATIO_M3508 * 8192.0f) * 360.0f;
         } break;
 
         case DJI_M2006: {
+            motor_point->real_current =
+                (int16_t)((can_msg[4] << 8) | can_msg[5]) * (10.0f / 10000.0f);
+            motor_point->temperature = 0; /* C610 无温度反馈 */
             /* 2006 减速比 1:36 */
             motor_point->rotor_degree =
                 (float)(motor_point->total_angle) / (GEAR_RATIO_M2006 * 8192.0f) * 360.0f;
@@ -104,6 +84,9 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
 
 #if (DJI_MOTOR_USE_GM6020 == 1)
         case DJI_GM6020: {
+            motor_point->torque_current =
+                (int16_t)((can_msg[4] << 8) | can_msg[5]);
+            motor_point->temperature = can_msg[6];
             motor_point->rotor_degree =
                 (float)(motor_point->zero_from_first_frame
                             ? motor_point->total_angle
