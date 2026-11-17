@@ -25,7 +25,7 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
 
     dji_motor_handle_t *motor_point = (dji_motor_handle_t *)node_obj;
 
-    if (can_rx_header->id_type != CAN_ID_STD &&
+    if (can_rx_header->id_type != CAN_ID_STD ||
         can_rx_header->id != motor_point->motor_id) {
         return;
     }
@@ -43,27 +43,27 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
         motor_point->round_cnt = 0;
     }
 
+    motor_point->speed_rpm = (int16_t)((can_msg[2] << 8) | can_msg[3]);
+
     switch (motor_point->motor_model) {
 #if (DJI_MOTOR_USE_M3508_2006 == 1)
         case DJI_M3508: {
-            motor_point->real_current = (float)(can_msg[2] << 8 | can_msg[3]);
-            motor_point->speed_rpm = (int16_t)(motor_point->real_current);
-            motor_point->given_current =
-                (int16_t)((float)(can_msg[4] << 8 | can_msg[5]) / -5.0f);
+            motor_point->real_current =
+                (int16_t)((can_msg[4] << 8) | can_msg[5]) * (20.0f / 16384.0f);
+            motor_point->temperature = can_msg[6];
         } break;
 
         case DJI_M2006: {
-            motor_point->speed_rpm = (int16_t)(can_msg[2] << 8 | can_msg[3]);
             motor_point->real_current =
-                (float)(can_msg[4] << 8 | can_msg[5]) * 5.0f / 16384.0f;
+                (int16_t)((can_msg[4] << 8) | can_msg[5]) * (10.0f / 10000.0f);
+            motor_point->temperature = 0; /* C610 无温度反馈 */
         } break;
 #endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
 #if (DJI_MOTOR_USE_GM6020 == 1)
         case DJI_GM6020: {
-            motor_point->speed_rpm = (int16_t)(can_msg[2] << 8 | can_msg[3]);
             motor_point->torque_current =
-                (int16_t)(can_msg[4] << 8 | can_msg[5]);
+                (int16_t)((can_msg[4] << 8) | can_msg[5]);
             motor_point->temperature = can_msg[6];
         } break;
 #endif /* DJI_MOTOR_USE_GM6020 == 1 */
@@ -71,8 +71,6 @@ static void can_callback(void *node_obj, can_rx_header_t *can_rx_header,
         default: {
         } break;
     }
-
-    motor_point->hall = can_msg[6];
 
     if (motor_point->angle - motor_point->last_angle > 4096) {
         --(motor_point->round_cnt);
@@ -143,6 +141,7 @@ uint8_t dji_motor_init_impl(dji_motor_handle_t *motor, dji_motor_model_t motor_m
     motor->zero_from_first_frame = (offset == DJI_OFFSET_AUTO);
     motor->offset_angle = (uint16_t)((offset % 8192 + 8192) % 8192);
     motor->got_offset = false;
+    motor->motor_id = can_id;
     motor->can_select = can_select;
     if (can_list_add_new_node(can_select, (void *)motor, can_id, 0x7FF,
                               CAN_ID_STD, can_callback) != 0) {

@@ -100,41 +100,38 @@ typedef struct {
 #if (DJI_MOTOR_USE_M3508_2006 == 1)
 
     /* 3508/2006 参数 */
-    float real_current;    /*!< 实际电流 */
-    int16_t given_current; /*!< 期望电流，M3508 电机才会赋值 */
+    float real_current;    /*!< 转矩电流 Iq（A），3508: ±20 A，2006: ±10 A */
 
 #endif /* DJI_MOTOR_USE_M3508_2006 == 1 */
 
 #if (DJI_MOTOR_USE_GM6020 == 1)
 
     /* GM6020 参数 */
-    int16_t torque_current; /*!< 实际转矩电流 */
-    uint8_t temperature;    /*!< 温度 */
+    int16_t torque_current; /*!< 实际转矩电流（原始值，±16384 对应 ±3 A） */
 
 #endif /* DJI_MOTOR_USE_GM6020 == 1 */
 
     /* 共用参数 */
-    uint8_t hall; /*!< 可能是霍尔传感器值 */
+    uint8_t hall; /*!< 保留字段，原 DATA[6]，目前不赋值 */
 
-    bool zero_from_first_frame; /*!< 是否以初始化后的首帧位置为零点 */
+    bool zero_from_first_frame; /*!< 是否把上电首帧位置当作 0 位 */
     bool got_offset;       /*!< 首帧角度与计圈状态已初始化 */
     uint16_t offset_angle; /*!< 零位对应的编码器计数，范围 0 ~ 8191 */
 
-    uint16_t last_angle; /*!< 上次角度 */
-    uint16_t angle;      /*!< 角度，绝对角度，一圈为 8192 */
-    int32_t total_angle; /*!< 相对所选零点的累计角度，单位为编码器计数 */
-    int32_t round_cnt;  /*!< 圈数计数 */
-    float rotor_degree; /*!< 转子角度
-                             对于 3508 与 2006, 是轴的相对位置.
-                             默认首帧为 0 度，轴转一圈为 360, 0 (360)
-                             度附近不会跳变. 角度会累加，已经除过减速比； 对于
-                             6020, 显式传入 offset 时为相对该零位的单圈位置 [0, 360),
-                             省略 offset 时为首帧归零的累计角度 */
+    uint16_t last_angle; /*!< 上一次回调的转子单圈计数 */
+    uint16_t angle;      /*!< 当前回调的转子单圈编码器计数，0 ~ 8191 */
+    int32_t total_angle; /*!< 相对零位的转子累计编码器计数 */
+    int32_t round_cnt;   /*!< 转子圈数计数 */
+    float rotor_degree;  /*!< 输出轴角度
+                              3508/2006：相对首帧回调读到数据的累计角，已除减速比；
+                              6020：显式 offset 时为相对该零位的单圈角 [0, 360)，
+                              省略 offset 时把上电首帧获取的数据当作 0 位并累计 */
 
-    int16_t set_value; /*!< 设置的值，电压或电流值 */
-    int16_t speed_rpm; /*!< 速度 */
+    int16_t set_value; /*!< 设置的值（电流或电压） */
+    int16_t speed_rpm; /*!< 转子转速（RPM）；3508/2006 需除减速比得输出轴转速 */
 
-    dji_can_id_t motor_id;         /*!< 电机 ID */
+    uint8_t temperature;    /*!< 温度（℃），3508/6020 有效，2006 无反馈 */
+    dji_can_id_t motor_id;  /*!< 电机 ID */
     dji_motor_model_t motor_model; /*!< 电机型号 */
     can_selected_t can_select;     /*!< 选择 CAN 通信 */
 } dji_motor_handle_t;
